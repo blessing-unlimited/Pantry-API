@@ -1,0 +1,49 @@
+@ http://localhost:5080
+Authorization: Bearer dev-token
+
+### Health
+GET {{host}}/api/v1/health
+
+### SSO (development bypass)
+POST {{host}}/api/v1/auth/sso
+Content-Type: application/json
+
+{
+  "idToken": "dev-token",
+  "displayName": "Sihle",
+  "email": "sihle@pantry.local"
+}
+
+### Settings
+GET {{host}}/api/v1/users/me/settings
+
+###
+PATCH {{host}}/api/v1/users/me/settings
+Content-Type: application/json
+
+{
+  "languageCode": "en",
+  "dietaryPreferences": ["vegetarian"],
+  "cuisinePreferences": ["Italian"],
+  "allergens": [],
+  "notificationsEnabled": false,
+  "maxMissingIngredients": 4
+}
+
+### Add pantry item
+POST {{host}}/api/v1/pantry-items
+Content-Type: application/json
+
+{
+  "ingredientName": "chicken",
+  "quantity": 500,
+  "unit": "g"
+}
+
+### Match recipes
+POST {{host}}/api/v1/recipes/match
+Content-Type: application/json
+
+{
+  "ingredientNames": ["chicken", "garlic", "tomato"]
+}
