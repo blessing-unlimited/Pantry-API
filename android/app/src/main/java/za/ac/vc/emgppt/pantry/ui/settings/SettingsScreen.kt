@@ -11,12 +11,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import za.ac.vc.emgppt.pantry.ui.theme.Basil
+import za.ac.vc.emgppt.pantry.ui.theme.Cream
+import za.ac.vc.emgppt.pantry.ui.theme.Ivory
+import za.ac.vc.emgppt.pantry.ui.theme.Terracotta
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,8 +56,9 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Cream)
             .padding(contentPadding)
-            .padding(16.dp)
+            .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -64,7 +72,11 @@ fun SettingsScreen(
                     onClick = {
                         diets = if (diets.contains(option)) diets - option else diets + option
                     },
-                    label = { Text(option) }
+                    label = { Text(option, style = MaterialTheme.typography.labelLarge) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Basil,
+                        selectedLabelColor = Ivory
+                    )
                 )
             }
         }
@@ -76,7 +88,11 @@ fun SettingsScreen(
                     onClick = {
                         cuisines = if (cuisines.contains(option)) cuisines - option else cuisines + option
                     },
-                    label = { Text(option) }
+                    label = { Text(option, style = MaterialTheme.typography.labelLarge) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Basil,
+                        selectedLabelColor = Ivory
+                    )
                 )
             }
         }
@@ -111,8 +127,9 @@ fun SettingsScreen(
                     )
                 )
             },
-            modifier = Modifier.fillMaxWidth()
-        ) { Text("Save settings") }
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
+        ) { Text("Save settings", style = MaterialTheme.typography.labelLarge) }
         OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text("Sign out") }
         Text(
             "Gamification badges and streaks are assigned to Lesedi for the next commit.",

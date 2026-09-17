@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -28,6 +30,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import za.ac.vc.emgppt.pantry.BuildConfig
+import za.ac.vc.emgppt.pantry.ui.theme.Cream
+import za.ac.vc.emgppt.pantry.ui.theme.Ivory
+import za.ac.vc.emgppt.pantry.ui.theme.PantryBrandMark
 import za.ac.vc.emgppt.pantry.ui.theme.Terracotta
 
 @Composable
@@ -48,46 +53,65 @@ fun SignInScreen(
         if (state.signedIn) onSignedIn()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Terracotta)
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("PANTRY", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onPrimary)
-        Text(
-            "Cook what's already yours",
-            color = MaterialTheme.colorScheme.onPrimary,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(32.dp))
-        if (state.loading) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
-        } else {
-            Button(
-                onClick = {
-                    val client = GoogleSignIn.getClient(activity, viewModel.googleSignInOptions(activity))
-                    launcher.launch(client.signInIntent)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Continue with Google")
-            }
-            if (BuildConfig.ALLOW_DEV_SSO) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = { viewModel.signInWithDevelopmentSso() },
-                    modifier = Modifier.fillMaxWidth()
+    Column(modifier = Modifier.fillMaxSize().background(Cream)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Terracotta, RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
+                .padding(top = 56.dp, bottom = 36.dp, start = 24.dp, end = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            PantryBrandMark(size = 112.dp)
+            Spacer(Modifier.height(12.dp))
+            Text("PANTRY", style = MaterialTheme.typography.headlineLarge, color = Ivory)
+            Text(
+                "Cook what's already yours",
+                color = Ivory,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(28.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Sign in to match recipes to your kitchen.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(28.dp))
+            if (state.loading) {
+                CircularProgressIndicator(color = Terracotta)
+            } else {
+                Button(
+                    onClick = {
+                        val client = GoogleSignIn.getClient(activity, viewModel.googleSignInOptions(activity))
+                        launcher.launch(client.signInIntent)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Terracotta),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Continue (local demo SSO)")
+                    Text("Continue with Google", style = MaterialTheme.typography.labelLarge)
+                }
+                if (BuildConfig.ALLOW_DEV_SSO) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.signInWithDevelopmentSso() },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Continue (local demo SSO)", style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             }
-        }
-        state.error?.let {
-            Spacer(Modifier.height(16.dp))
-            Text(it, color = MaterialTheme.colorScheme.onPrimary, textAlign = TextAlign.Center)
+            state.error?.let {
+                Spacer(Modifier.height(16.dp))
+                Text(it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+            }
         }
     }
 }

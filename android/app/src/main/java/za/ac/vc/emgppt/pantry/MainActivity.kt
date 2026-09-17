@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -18,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -47,7 +47,10 @@ import za.ac.vc.emgppt.pantry.ui.pantry.PantryScreen
 import za.ac.vc.emgppt.pantry.ui.recipes.RecipeDetailScreen
 import za.ac.vc.emgppt.pantry.ui.recipes.RecipesScreen
 import za.ac.vc.emgppt.pantry.ui.settings.SettingsScreen
+import za.ac.vc.emgppt.pantry.ui.theme.Cream
+import za.ac.vc.emgppt.pantry.ui.theme.Ivory
 import za.ac.vc.emgppt.pantry.ui.theme.PantryTheme
+import za.ac.vc.emgppt.pantry.ui.theme.SplashScreen
 import za.ac.vc.emgppt.pantry.ui.theme.Terracotta
 
 class MainActivity : ComponentActivity() {
@@ -84,17 +87,12 @@ private fun PantryRoot(authViewModel: AuthViewModel) {
     NavHost(navController = navController, startDestination = start) {
         composable("splash") {
             LaunchedEffect(authState.signedIn) {
-                kotlinx.coroutines.delay(900)
+                kotlinx.coroutines.delay(1500)
                 navController.navigate(if (authState.signedIn) "main" else "signIn") {
                     popUpTo("splash") { inclusive = true }
                 }
             }
-            Box(
-                modifier = Modifier.fillMaxSize().background(Terracotta),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("PANTRY", color = Color.White)
-            }
+            SplashScreen()
         }
         composable("signIn") {
             SignInScreen(authViewModel) {
@@ -139,10 +137,11 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
     }
 
     Scaffold(
+        containerColor = Cream,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
             if (current in tabs.map { it.route }) {
-                NavigationBar {
+                NavigationBar(containerColor = Ivory) {
                     tabs.forEach { tab ->
                         NavigationBarItem(
                             selected = current == tab.route,
@@ -154,7 +153,14 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
                                 }
                             },
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
-                            label = { Text(tab.label) }
+                            label = { Text(tab.label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = Terracotta,
+                                indicatorColor = Terracotta,
+                                unselectedIconColor = Terracotta.copy(alpha = 0.55f),
+                                unselectedTextColor = Terracotta.copy(alpha = 0.55f)
+                            )
                         )
                     }
                 }
@@ -164,7 +170,9 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
         NavHost(navController = navController, startDestination = "home") {
             composable("home") {
                 if (state.loading && state.recipes.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Terracotta)
+                    }
                 } else {
                     HomeScreen(state, onRecipeClick = { navController.navigate("recipe/$it") }, contentPadding = padding)
                 }
