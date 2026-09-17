@@ -32,7 +32,16 @@ Included now: SSO session (`POST /api/v1/auth/sso`), settings, pantry CRUD, reci
 
 Deferred to the final POE (assignment brief): biometrics, offline Room sync, push notifications, multi-language.
 
-Sihle's slice is already on `main`. **Blessing, Lesedi, and Thami still have assigned work** — follow the step-by-step checklists in [Work still to do](#work-still-to-do-classmates).
+**Blessing, Lesedi, and Thami still have assigned work** — follow the step-by-step checklists in [Work still to do](#work-still-to-do-classmates).
+
+## Sihle Nathi Simelane (`Sihl3s`) — work on `main`
+
+Sihle built the Part 2 vertical slice that the rest of the group extends:
+
+- **Custom REST API** (`api/Pantry.Api`): SSO session (`POST /api/v1/auth/sso`), user settings, pantry CRUD, ingredient search, recipe search/detail, and the reverse-pantry **match** endpoint that ranks TheMealDB meals against the signed-in user's pantry (match %, have/missing counts). Firebase Realtime Database store when `Firebase:BaseUrl` is set; in-memory store for localhost.
+- **Android client** (`android/`): Kotlin + Jetpack Compose MVVM app with splash, Google Sign-In plus local demo SSO, bottom navigation (Home, Pantry, Recipes, Profile), pantry add/remove, ranked recipe cards, recipe detail, and settings saved through the API.
+- **Part 1 brand:** terracotta / basil / cream theme, Playfair Display + Source Sans 3, plate-and-steam logo, branded splash and sign-in header, circular recipe thumbs, readiness lines, and terracotta-pill bottom nav.
+- **Quality / DevOps:** xUnit matching tests, JUnit helpers on Android, GitHub Actions (`api-ci` and `android-ci`), README run steps, and the classmate owner checklists so Blessing, Lesedi, and Thami can commit from their own accounts.
 
 ## How to run the API (localhost)
 
