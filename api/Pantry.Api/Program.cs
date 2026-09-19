@@ -1,11 +1,18 @@
+<<<<<<< HEAD
+=======
+using System.Reflection;
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Pantry.Api.Auth;
 using Pantry.Api.Options;
 using Pantry.Api.Services;
+<<<<<<< HEAD
 using System.Net.Http.Headers;
 using System.Reflection;
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +84,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
+<<<<<<< HEAD
 builder.Services.AddHttpClient<ILogMealService, LogMealService>(client =>
 {
     client.BaseAddress = new Uri("https://api.logmeal.com/");
@@ -90,6 +98,8 @@ builder.Services.AddHttpClient<ILogMealService, LogMealService>(client =>
     client.Timeout = TimeSpan.FromSeconds(60);
 });
 
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 var app = builder.Build();
 
 app.UseExceptionHandler(errorApp =>

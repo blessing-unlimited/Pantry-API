@@ -10,7 +10,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.25" />
+<<<<<<< HEAD
     <PackageReference Include="SkiaSharp" Version="4.152.1" />
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
   </ItemGroup>
 

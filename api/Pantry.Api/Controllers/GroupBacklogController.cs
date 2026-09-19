@@ -1,20 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
 using Pantry.Api.Models;
+<<<<<<< HEAD
 using Pantry.Api.Services;
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 namespace Pantry.Api.Controllers;
 
 /// <summary>
+<<<<<<< HEAD
 /// Shopping list generation, CRUD, and ingredient substitutions. Recipe
 /// ingredient data comes live from TheMealDB via injected
 /// IRecipeMatchingService (which wraps IMealDbClient); persistence flows
 /// through IUserStore for in-memory and Firebase stores
 /// (TheMealDB, 2026; Firebase, 2026).
+=======
+/// Assigned to Blessing. These routes are documented in Part 1 and must be
+/// implemented against Firebase plus pantry/recipe data. Returning 501 keeps
+/// the contract visible in Swagger without pretending the feature is done.
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 /// </summary>
 [ApiController]
 [Route("api/v1")]
 public sealed class GroupBacklogController : ControllerBase
 {
+<<<<<<< HEAD
     private readonly IUserStore _store;
     private readonly IRecipeMatchingService _recipeService;
     private readonly ILogger<GroupBacklogController> _logger;
@@ -192,4 +202,25 @@ public sealed class GroupBacklogController : ControllerBase
         return Ok(ApiEnvelope<IReadOnlyList<SubstitutionDto>>.Ok(
             result.OrderByDescending(s => s.InPantry).ThenBy(s => s.AlternativeName).ToList()));
     }
+=======
+    /// <summary>Blessing: generate a de-duplicated shopping list from recipe ids.</summary>
+    [HttpPost("shopping-lists/generate")]
+    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
+    public IActionResult GenerateShoppingList() =>
+        StatusCode(StatusCodes.Status501NotImplemented,
+            ApiEnvelope<string>.Fail("Assigned to Blessing: implement shopping-list generation."));
+
+    [HttpGet("shopping-lists")]
+    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
+    public IActionResult ListShoppingLists() =>
+        StatusCode(StatusCodes.Status501NotImplemented,
+            ApiEnvelope<string>.Fail("Assigned to Blessing: implement shopping-list CRUD."));
+
+    /// <summary>Blessing: return pantry-aware substitutions for a missing ingredient.</summary>
+    [HttpGet("substitutions/{ingredientId}")]
+    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
+    public IActionResult Substitutions(string ingredientId) =>
+        StatusCode(StatusCodes.Status501NotImplemented,
+            ApiEnvelope<string>.Fail($"Assigned to Blessing: substitutions for '{ingredientId}'."));
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }

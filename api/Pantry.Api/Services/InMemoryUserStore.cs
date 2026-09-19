@@ -15,10 +15,13 @@ public sealed class InMemoryUserStore : IUserStore
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, PantryItem>> _pantries = new();
     private readonly ILogger<InMemoryUserStore> _logger;
 
+<<<<<<< HEAD
     // Blessing
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ShoppingList>> _shoppingLists = new();
 
 
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
     public InMemoryUserStore(ILogger<InMemoryUserStore> logger)
     {
         _logger = logger;
@@ -106,6 +109,7 @@ public sealed class InMemoryUserStore : IUserStore
         NotificationsEnabled = settings.NotificationsEnabled,
         MaxMissingIngredients = settings.MaxMissingIngredients
     };
+<<<<<<< HEAD
 
     // ===== Shopping Lists (Blessing) =====
     public Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken)
@@ -147,4 +151,6 @@ public sealed class InMemoryUserStore : IUserStore
             return Task.FromResult(false);
         return Task.FromResult(lists.TryRemove(listId, out _));
     }
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }

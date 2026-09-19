@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.Extensions.Options;
 using Pantry.Api.Models;
@@ -5,6 +6,14 @@ using Pantry.Api.Options;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+=======
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
+using Pantry.Api.Models;
+using Pantry.Api.Options;
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 namespace Pantry.Api.Services;
 
@@ -27,6 +36,7 @@ public interface IUserStore
     Task<PantryItem?> UpdatePantryItemAsync(string userId, string itemId, PantryItem item, CancellationToken cancellationToken);
 
     Task<bool> DeletePantryItemAsync(string userId, string itemId, CancellationToken cancellationToken);
+<<<<<<< HEAD
 
     // Shopping lists — Blessing
     Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken);
@@ -35,6 +45,8 @@ public interface IUserStore
     Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken);
     Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken);
 
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }
 
 /// <summary>
@@ -222,6 +234,7 @@ public sealed class FirebaseUserStore : IUserStore
     {
         public string? Name { get; set; }
     }
+<<<<<<< HEAD
 
     // ===== Shopping Lists (Blessing) =====
     public async Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken)
@@ -285,4 +298,6 @@ public sealed class FirebaseUserStore : IUserStore
         return true;
     }
 
+=======
+>>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }
