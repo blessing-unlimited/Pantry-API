@@ -12,7 +12,7 @@ Thami will add an unlisted YouTube link here after the physical-device recording
 
 > **Video:** _pending — Nomathamsanqa Tame_
 
-Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--demo-video-readme-media-icon-polish). Scan and shopping lists are already on `main` and can be filmed.
+Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--hosted-api-demo-video-readme-media). Scan and shopping lists are already on `main` and can be filmed.
 
 ## Architecture
 
@@ -33,17 +33,18 @@ Included now: SSO session (`POST /api/v1/auth/sso`), settings, pantry CRUD, reci
 
 Deferred to the final POE (assignment brief): biometrics, offline Room sync, push notifications, multi-language.
 
-**Lesedi and Thami still have assigned work.** Blessing's remaining work is Firebase Google SSO and hosting the API for the video — see [Work still to do](#work-still-to-do-classmates).
+**Lesedi and Thami still have assigned work.** Blessing's remaining work is Google SSO on Android and testing the app. Sihle owns local Realtime Database secrets. Thami hosts the API for the video — see [Work still to do](#work-still-to-do-classmates).
 
 ## Sihle Nathi Simelane (`Sihl3s`) — work on `main`
 
 Sihle built the Part 2 vertical slice that the rest of the group extends:
 
-- **Custom REST API** (`api/Pantry.Api`): SSO session (`POST /api/v1/auth/sso`), user settings, pantry CRUD, ingredient search, recipe search/detail, and the reverse-pantry **match** endpoint that ranks TheMealDB meals against the signed-in user's pantry (match %, have/missing counts). Firebase Realtime Database store when `Firebase:BaseUrl` is set; in-memory store for localhost.
+- **Custom REST API** (`api/Pantry.Api`): SSO session (`POST /api/v1/auth/sso`), user settings, pantry CRUD, ingredient search, recipe search/detail, and the reverse-pantry **match** endpoint that ranks TheMealDB meals against the signed-in user's pantry (match %, have/missing counts). Firebase Realtime Database when `Firebase:BaseUrl` is set; in-memory store if that value is empty.
+- **Firebase Realtime Database (local):** group project created, test-mode rules published, and `Firebase:BaseUrl` / `Firebase:ProjectId` set with `dotnet user-secrets` on Sihle's machine. The live database URL is not in git. Thami reuses the same values as host environment variables; Blessing uses the same Firebase project for Google SSO.
 - **Android client** (`android/`): Kotlin + Jetpack Compose MVVM app with splash, Google Sign-In plus local demo SSO, bottom navigation (Home, Pantry, Recipes, Profile), pantry add/remove, ranked recipe cards, recipe detail, and settings saved through the API.
 - **Part 1 brand:** terracotta / basil / cream theme, Playfair Display + Source Sans 3, plate-and-steam logo, branded splash and sign-in header, circular recipe thumbs, readiness lines, and terracotta-pill bottom nav.
 - **Quality / DevOps:** xUnit matching and shopping-list tests, JUnit helpers on Android, GitHub Actions (`api-ci` and `android-ci`; Android SDK setup uses current `platform-tools`), README run steps, and the classmate owner checklists so Blessing, Lesedi, and Thami can commit from their own accounts.
-- **Help on Blessing's slice:** merge-conflict cleanup on his shopping-list / LogMeal commits, CameraX + gallery scan UI against `POST /api/v1/food-recognition`, shopping-list screen, and wiring shopping generate to recipe detail. Firebase hosting and Google SSO client files remain Blessing's.
+- **Help on Blessing's slice:** merge-conflict cleanup on his shopping-list / LogMeal commits, CameraX + gallery scan UI against `POST /api/v1/food-recognition`, shopping-list screen, and wiring shopping generate to recipe detail. Google SSO client files remain Blessing's; public hosting remains Thami's.
 
 ## Blessing Makhukhula (`blessing-unlimited`) — work on `main`
 
@@ -84,16 +85,14 @@ dotnet user-secrets set "LogMeal:ApiToken" "YOUR_TOKEN" --project api/Pantry.Api
 
 ### Persist to Firebase
 
-Set in `api/Pantry.Api/appsettings.Development.json` or user secrets:
+Sihle has already initialised user secrets on `api/Pantry.Api` (`UserSecretsId` in the `.csproj`). The live BaseUrl stays in that secret store (or Thami's host environment variables), never in git.
 
-```json
-"Firebase": {
-  "BaseUrl": "https://YOUR-PROJECT-default-rtdb.REGION.firebasedatabase.app/",
-  "ProjectId": "YOUR-PROJECT"
-}
+```bash
+dotnet user-secrets set "Firebase:BaseUrl" "https://YOUR-PROJECT-default-rtdb.REGION.firebasedatabase.app/" --project api/Pantry.Api
+dotnet user-secrets set "Firebase:ProjectId" "YOUR-PROJECT" --project api/Pantry.Api
 ```
 
-Use test-mode rules for the prototype, then lock them down (OWASP, 2023). Never commit `*firebase-adminsdk*.json`.
+Realtime Database must stay in **test mode** for the prototype because the API calls the REST URL without a database secret (OWASP, 2023). After secrets are set, Swagger **Authorize** with `dev-token` and `POST /api/v1/pantry-items` should show `users/dev-user-sihle/pantryItems` in the Firebase Data tab. Never commit `*firebase-adminsdk*.json` or the live BaseUrl.
 
 ## How to run the Android app
 
@@ -122,15 +121,15 @@ Shared setup before anyone codes:
 
 ---
 
-### Blessing Makhukhula (`blessing-unlimited`) — Firebase Google SSO and hosted API
+### Blessing Makhukhula (`blessing-unlimited`) — Google SSO and Android testing
 
-Shopping lists, substitutions, LogMeal identify/confirm, CameraX/gallery scan, and the shopping-list screen are already on `main`. **Still Blessing's to finish for Thami's video:** a school Firebase project and a public HTTPS API URL.
+Shopping lists, substitutions, LogMeal identify/confirm, CameraX/gallery scan, and the shopping-list screen are already on `main`. Realtime Database local wiring is Sihle's. **Hosting is Thami's.** Blessing's remaining work:
 
-1. Create a Firebase project: enable Authentication (Google), Realtime Database (test mode for the prototype), register Android package `za.ac.vc.emgppt.pantry`, download `google-services.json` into `android/app/` (do not commit secrets beyond the school project's client file if the lecturer expects it).
-2. Put the Web client ID in `android/app/src/main/res/values/strings.xml` (`default_web_client_id`) so **Continue with Google** returns a real ID token.
-3. Set `Firebase:BaseUrl` and `Firebase:ProjectId` on the API (user secrets or host environment variables — not a service-account JSON in git).
-4. Host the API (Azure for Students, Render, Cloud Run, or similar). Put the public HTTPS URL into `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) for the physical-device build Thami will record.
-5. Tell Thami the hosted URL, Firebase console login, and Swagger URL so the video can show live Auth, API, and database records.
+1. Pull `main`, run the API + emulator, and test: demo SSO, pantry add, scan/gallery, recipe match, Add missing → shopping list.
+2. Enable **Authentication → Google** on the group Firebase project. Register Android package `za.ac.vc.emgppt.pantry`.
+3. Put `google-services.json` in `android/app/` (do not commit secrets beyond the school project's client file if the lecturer expects it).
+4. Put the Web client ID in `android/app/src/main/res/values/strings.xml` (`default_web_client_id`) so **Continue with Google** returns a real ID token.
+5. Set LogMeal locally if you need scan: `dotnet user-secrets set "LogMeal:ApiToken" "YOUR_TOKEN" --project api/Pantry.Api`.
 
 ---
 
@@ -152,21 +151,23 @@ Shopping lists, substitutions, LogMeal identify/confirm, CameraX/gallery scan, a
 
 ---
 
-### Nomathamsanqa Tame (`NomathamsanqaTame`) — demo video, README media, icon polish
+### Nomathamsanqa Tame (`NomathamsanqaTame`) — hosted API, demo video, README media
 
-**Goal:** The Part 2 submission video and README evidence. Record on a **physical phone** with a voice-over that shows you understand the flow. Wait until Blessing's hosted API and Firebase are reachable if you need live cloud screens; you can rehearse on localhost first.
+**Goal:** Host the API on the public internet, then record the Part 2 submission video. Rehearse on localhost first if hosting is not ready.
 
-1. Install the debug APK on a physical Android phone. Point the app at Blessing's hosted API (or the PC LAN IP if hosting is not ready).
-2. Record with any screen recorder. Speak throughout. Keep the video unlisted on YouTube (or another link the lecturer can open).
-3. **Authentication:** show a new user registering / signing in with Google SSO. If Google is not wired yet, say so on camera and show the working SSO session against the API, then record Google again once Blessing adds `google-services.json`.
-4. **Settings:** open Profile, change dietary preferences or max missing ingredients, tap Save, then reopen the screen (or Swagger `GET /api/v1/users/me/settings`) to prove it persisted.
-5. **Web services:** add pantry items, open Home/Recipes, and show ranked matches from the custom API (not TheMealDB in a browser). Open a recipe detail so missing vs in-pantry is visible.
-6. **Data verification:** on camera, show three places for the same user: Firebase Authentication (user list), Swagger of the hosted API (pantry/match JSON), and Firebase Realtime Database (or the in-memory note only if Firebase is still empty — prefer real DB records).
-7. **Custom feature:** demonstrate reverse-pantry matching (match % and missing ingredients). Also film **Scan with camera** (or gallery) adding a pantry item, and **Add missing** → shopping list checkboxes. Film Lesedi's cook mode if that is merged by recording day.
-8. Polish the app icon / splash if you want a visible commit (adaptive icon files under `android/app/src/main/res/`).
-9. Capture screenshots of splash, sign-in, home, pantry, recipe match, settings, and (if ready) cook mode / shopping list.
-10. Embed the unlisted YouTube link at the top of this README where it currently says `_pending — Nomathamsanqa Tame_`. Add the screenshots under a short "Screenshots" heading.
-11. Commit and push from `NomathamsanqaTame` so you appear on the contributor graph.
+1. Host the API (Azure for Students, Render, Cloud Run, or similar). Set environment variables `Firebase__BaseUrl` and `Firebase__ProjectId` to the same values Sihle uses locally (ask Sihle in the group chat — do not put them in git).
+2. Put the public HTTPS URL into `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) for the physical-device build.
+3. Install the debug APK on a physical Android phone. Point the app at the hosted API (or the PC LAN IP if hosting is not ready).
+4. Record with any screen recorder. Speak throughout. Keep the video unlisted on YouTube (or another link the lecturer can open).
+5. **Authentication:** show a new user registering / signing in with Google SSO. If Google is not wired yet, say so on camera and show the working SSO session against the API, then record Google again once Blessing adds `google-services.json`.
+6. **Settings:** open Profile, change dietary preferences or max missing ingredients, tap Save, then reopen the screen (or Swagger `GET /api/v1/users/me/settings`) to prove it persisted.
+7. **Web services:** add pantry items, open Home/Recipes, and show ranked matches from the custom API (not TheMealDB in a browser). Open a recipe detail so missing vs in-pantry is visible.
+8. **Data verification:** on camera, show three places for the same user: Firebase Authentication (user list), Swagger of the hosted API (pantry/match JSON), and Firebase Realtime Database (prefer real DB records under `users/`).
+9. **Custom feature:** demonstrate reverse-pantry matching (match % and missing ingredients). Also film **Scan with camera** (or gallery) adding a pantry item, and **Add missing** → shopping list checkboxes. Film Lesedi's cook mode if that is merged by recording day.
+10. Polish the app icon / splash if you want a visible commit (adaptive icon files under `android/app/src/main/res/`).
+11. Capture screenshots of splash, sign-in, home, pantry, recipe match, settings, and (if ready) cook mode / shopping list.
+12. Embed the unlisted YouTube link at the top of this README where it currently says `_pending — Nomathamsanqa Tame_`. Add the screenshots under a short "Screenshots" heading.
+13. Commit and push from `NomathamsanqaTame` so you appear on the contributor graph.
 
 ---
 

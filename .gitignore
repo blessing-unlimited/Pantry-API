@@ -27,10 +27,11 @@ local.properties
 *.class
 .DS_Store
 
-# Secrets — never commit service accounts or local keystores
+# Secrets — never commit service accounts, database URLs, or local keystores
 **/google-services.json
 !android/app/google-services.json.example
 *firebase-adminsdk*.json
+secrets.json
 *.jks
 *.keystore
 secrets.properties
