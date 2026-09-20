@@ -42,6 +42,7 @@ Sihle built the Part 2 vertical slice that the rest of the group extends:
 - **Android client** (`android/`): Kotlin + Jetpack Compose MVVM app with splash, Google Sign-In plus local demo SSO, bottom navigation (Home, Pantry, Recipes, Profile), pantry add/remove, ranked recipe cards, recipe detail, and settings saved through the API.
 - **Part 1 brand:** terracotta / basil / cream theme, Playfair Display + Source Sans 3, plate-and-steam logo, branded splash and sign-in header, circular recipe thumbs, readiness lines, and terracotta-pill bottom nav.
 - **Quality / DevOps:** xUnit matching tests, JUnit helpers on Android, GitHub Actions (`api-ci` and `android-ci`), README run steps, and the classmate owner checklists so Blessing, Lesedi, and Thami can commit from their own accounts.
+- **Help on Blessing's slice:** merge-conflict cleanup on his shopping-list / LogMeal commits, CameraX + gallery scan UI against `POST /api/v1/food-recognition`, and the shopping-list screen. Firebase hosting and Google SSO client files remain Blessing's.
 
 ## How to run the API (localhost)
 
@@ -105,22 +106,21 @@ Shared setup before anyone codes:
 
 ### Blessing Makhukhula (`blessing-unlimited`) — API shopping lists, substitutions, scan, hosting
 
-**Goal:** The custom API must generate shopping lists and substitutions, the Android scan button must capture ingredients, and the API must be reachable on the public internet for Thami's video.
+Blessing's LogMeal food recognition and shopping-list API are on `main` (`FoodRecognitionController`, `ShoppingListGenerator`, store CRUD). Camera scan and shopping-list screens were wired so the prototype can be demonstrated. **Still Blessing's to finish for the video:** Firebase Google SSO, Realtime Database, and a public hosted API URL.
 
-1. Open [api/Pantry.Api/Controllers/GroupBacklogController.cs](api/Pantry.Api/Controllers/GroupBacklogController.cs). Keep the same routes. Replace every `501 Not Implemented` with real logic.
-2. Implement `POST /api/v1/shopping-lists/generate`. Accept selected recipe ids (and optional list name). Read the signed-in user's pantry, compute missing ingredients, merge duplicates, and save the list for that user.
-3. Implement shopping-list CRUD on `GET/POST/PATCH/DELETE /api/v1/shopping-lists` and `GET/PATCH /api/v1/shopping-lists/{id}` so items can be checked off.
-4. Store lists under the user in Firebase Realtime Database once `Firebase:BaseUrl` is set (same pattern as [FirebaseUserStore.cs](api/Pantry.Api/Services/FirebaseUserStore.cs)). Use the in-memory store only for local tests.
-5. Implement `GET /api/v1/substitutions/{ingredientId}`. Return pantry-aware alternatives for a missing ingredient (a small lookup table is enough for Part 2).
-6. Add xUnit tests in `api/Pantry.Api.Tests/` for de-duplication and substitution selection (no live network).
-7. On Android, wire **Add missing** on [RecipeDetailScreen.kt](android/app/src/main/java/za/ac/vc/emgppt/pantry/ui/recipes/RecipeDetailScreen.kt) to `POST /api/v1/shopping-lists/generate`.
-8. Add a Shopping List screen (Lists tab or a route from recipe detail) that shows the generated list, checkboxes, and recipe tags from Part 1.
-9. Replace the placeholder [ScanScreen](android/app/src/main/java/za/ac/vc/emgppt/pantry/ui/group/GroupScreens.kt): CameraX preview, capture, confirm-detected-ingredients list with quantity steppers, then `POST /api/v1/pantry-items`. ML Kit labelling is optional if time is short; manual confirm after a photo is acceptable for Part 2.
-10. Create a Firebase project: enable Authentication (Google), Realtime Database (test mode for the prototype), register Android package `za.ac.vc.emgppt.pantry`, download `google-services.json` into `android/app/` (do not commit secrets beyond the school project's client file if the lecturer expects it).
-11. Put the Web client ID in `android/app/src/main/res/values/strings.xml` (`default_web_client_id`) so **Continue with Google** returns a real ID token.
-12. Set `Firebase:BaseUrl` and `Firebase:ProjectId` on the API (user secrets or host environment variables — not a service-account JSON in git).
-13. Host the API (Azure for Students, Render, Cloud Run, or similar). Put the public HTTPS URL into `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) for the physical-device build Thami will record.
-14. Tell Thami the hosted URL, Firebase console login, and Swagger URL so the video can show live Auth, API, and database records.
+Set the LogMeal key locally (do not commit it):
+
+```bash
+dotnet user-secrets set "LogMeal:ApiToken" "YOUR_TOKEN" --project api/Pantry.Api
+```
+
+Remaining hosting / Firebase steps:
+
+1. Create a Firebase project: enable Authentication (Google), Realtime Database (test mode for the prototype), register Android package `za.ac.vc.emgppt.pantry`, download `google-services.json` into `android/app/` (do not commit secrets beyond the school project's client file if the lecturer expects it).
+2. Put the Web client ID in `android/app/src/main/res/values/strings.xml` (`default_web_client_id`) so **Continue with Google** returns a real ID token.
+3. Set `Firebase:BaseUrl` and `Firebase:ProjectId` on the API (user secrets or host environment variables — not a service-account JSON in git).
+4. Host the API (Azure for Students, Render, Cloud Run, or similar). Put the public HTTPS URL into `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) for the physical-device build Thami will record.
+5. Tell Thami the hosted URL, Firebase console login, and Swagger URL so the video can show live Auth, API, and database records.
 
 ---
 

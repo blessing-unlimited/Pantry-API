@@ -1,30 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Pantry.Api.Models;
-<<<<<<< HEAD
 using Pantry.Api.Services;
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 namespace Pantry.Api.Controllers;
 
 /// <summary>
-<<<<<<< HEAD
 /// Shopping list generation, CRUD, and ingredient substitutions. Recipe
 /// ingredient data comes live from TheMealDB via injected
-/// IRecipeMatchingService (which wraps IMealDbClient); persistence flows
-/// through IUserStore for in-memory and Firebase stores
+/// IRecipeMatchingService; persistence flows through IUserStore
 /// (TheMealDB, 2026; Firebase, 2026).
-=======
-/// Assigned to Blessing. These routes are documented in Part 1 and must be
-/// implemented against Firebase plus pantry/recipe data. Returning 501 keeps
-/// the contract visible in Swagger without pretending the feature is done.
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 /// </summary>
 [ApiController]
 [Route("api/v1")]
 public sealed class GroupBacklogController : ControllerBase
 {
-<<<<<<< HEAD
     private readonly IUserStore _store;
     private readonly IRecipeMatchingService _recipeService;
     private readonly ILogger<GroupBacklogController> _logger;
@@ -36,18 +25,23 @@ public sealed class GroupBacklogController : ControllerBase
         _logger = logger;
     }
 
-    // ===== Shopping list generation =====
-
     /// <summary>Generate a de-duplicated shopping list from MealDB recipe ids.</summary>
     [HttpPost("shopping-lists/generate")]
     [ProducesResponseType(typeof(ApiEnvelope<ShoppingList>), StatusCodes.Status201Created)]
-    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> GenerateShoppingList([FromBody] GenerateShoppingListRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> GenerateShoppingList(
+        [FromBody] GenerateShoppingListRequest request,
+        CancellationToken cancellationToken)
     {
-        var userId = "dev-user-sihle";
+        var userId = User.GetUserId();
         if (userId is null)
-            return Unauthorized(ApiEnvelope<ShoppingList>.Fail("Authentication is required."));// (brunolins, 2026)
+        {
+            return Unauthorized(ApiEnvelope<ShoppingList>.Fail("Authentication is required."));
+        }
+
         if (request.RecipeIds is null || request.RecipeIds.Count == 0)
+        {
             return BadRequest(ApiEnvelope<ShoppingList>.Fail("At least one recipeId is required."));
+        }
 
         var pantry = await _store.GetPantryAsync(userId, cancellationToken);
         var pantryNames = pantry
@@ -60,23 +54,28 @@ public sealed class GroupBacklogController : ControllerBase
             RecipeDetail? detail;
             try
             {
-                // MealDB lookup: rid is a MealDB meal id (e.g. "52771"), hits lookup.php and annotates InPantry flags.
                 detail = await _recipeService.GetRecipeAsync(rid, pantryNames.ToList(), cancellationToken);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "MealDB lookup failed for meal {MealId}", rid);
-                continue;   // one bad id must not fail the whole list
+                continue;
             }
-            if (detail is null) continue;
+
+            if (detail is null)
+            {
+                continue;
+            }
+
             recipesWithTitles.Add((detail, detail.Title));
         }
 
         if (recipesWithTitles.Count == 0)
+        {
             return NotFound(ApiEnvelope<ShoppingList>.Fail("No valid recipes were found for the provided ids."));
+        }
 
         var mergedItems = ShoppingListGenerator.MergeIngredients(recipesWithTitles, pantryNames);
-
         var now = DateTimeOffset.UtcNow;
         var list = new ShoppingList
         {
@@ -90,22 +89,25 @@ public sealed class GroupBacklogController : ControllerBase
         };
 
         var saved = await _store.AddShoppingListAsync(userId, list, cancellationToken);
-        _logger.LogInformation("User {UserId} generated shopping list {ListId} with {Count} items from TheMealDB meals", userId, saved.Id, saved.Items.Count);
+        _logger.LogInformation(
+            "User {UserId} generated shopping list {ListId} with {Count} items",
+            userId,
+            saved.Id,
+            saved.Items.Count);
 
         return CreatedAtAction(nameof(GetShoppingList), new { id = saved.Id }, ApiEnvelope<ShoppingList>.Ok(saved));
     }
 
-    // ===== Shopping list CRUD =====
-
     [HttpGet("shopping-lists")]
     [ProducesResponseType(typeof(ApiEnvelope<IReadOnlyList<ShoppingList>>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiEnvelope<IReadOnlyList<ShoppingList>>>> ListShoppingLists(CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiEnvelope<IReadOnlyList<ShoppingList>>>> ListShoppingLists(
+        CancellationToken cancellationToken)
     {
-        //var userId = User.GetUserId();
-        var userId = "dev-user-sihle";
-
+        var userId = User.GetUserId();
         if (userId is null)
+        {
             return Unauthorized(ApiEnvelope<IReadOnlyList<ShoppingList>>.Fail("Authentication is required."));
+        }
 
         var lists = await _store.GetShoppingListsAsync(userId, cancellationToken);
         return Ok(ApiEnvelope<IReadOnlyList<ShoppingList>>.Ok(lists));
@@ -113,37 +115,53 @@ public sealed class GroupBacklogController : ControllerBase
 
     [HttpGet("shopping-lists/{id}")]
     [ProducesResponseType(typeof(ApiEnvelope<ShoppingList>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> GetShoppingList(string id, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> GetShoppingList(
+        string id,
+        CancellationToken cancellationToken)
     {
-        //var userId = User.GetUserId();
-        var userId = "dev-user-sihle";
+        var userId = User.GetUserId();
         if (userId is null)
+        {
             return Unauthorized(ApiEnvelope<ShoppingList>.Fail("Authentication is required."));
+        }
 
         var list = await _store.GetShoppingListAsync(userId, id, cancellationToken);
         if (list is null)
+        {
             return NotFound(ApiEnvelope<ShoppingList>.Fail("Shopping list was not found."));
+        }
 
         return Ok(ApiEnvelope<ShoppingList>.Ok(list));
     }
 
     [HttpPatch("shopping-lists/{id}")]
     [ProducesResponseType(typeof(ApiEnvelope<ShoppingList>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> UpdateShoppingList(string id, [FromBody] UpdateShoppingListRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiEnvelope<ShoppingList>>> UpdateShoppingList(
+        string id,
+        [FromBody] UpdateShoppingListRequest request,
+        CancellationToken cancellationToken)
     {
-        //var userId = User.GetUserId();
-        var userId = "dev-user-sihle";
+        var userId = User.GetUserId();
         if (userId is null)
+        {
             return Unauthorized(ApiEnvelope<ShoppingList>.Fail("Authentication is required."));
+        }
 
         var existing = await _store.GetShoppingListAsync(userId, id, cancellationToken);
         if (existing is null)
+        {
             return NotFound(ApiEnvelope<ShoppingList>.Fail("Shopping list was not found."));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
+        {
             existing.Name = request.Name.Trim();
+        }
+
         if (request.Items is not null)
+        {
             existing.Items = request.Items;
+        }
 
         existing.UpdatedAt = DateTimeOffset.UtcNow;
         var updated = await _store.UpdateShoppingListAsync(userId, id, existing, cancellationToken);
@@ -154,32 +172,39 @@ public sealed class GroupBacklogController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteShoppingList(string id, CancellationToken cancellationToken)
     {
-        //var userId = User.GetUserId();
-        var userId = "dev-user-sihle";
+        var userId = User.GetUserId();
         if (userId is null)
+        {
             return Unauthorized(ApiEnvelope<ShoppingList>.Fail("Authentication is required."));
+        }
 
         var deleted = await _store.DeleteShoppingListAsync(userId, id, cancellationToken);
         if (!deleted)
+        {
             return NotFound(ApiEnvelope<ShoppingList>.Fail("Shopping list was not found."));
+        }
 
         _logger.LogInformation("User {UserId} deleted shopping list {ListId}", userId, id);
         return NoContent();
     }
 
-    // ===== Substitutions =====
-
     /// <summary>Return pantry-aware substitutions for a missing ingredient.</summary>
     [HttpGet("substitutions/{ingredientId}")]
     [ProducesResponseType(typeof(ApiEnvelope<IReadOnlyList<SubstitutionDto>>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiEnvelope<IReadOnlyList<SubstitutionDto>>>> Substitutions(string ingredientId, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiEnvelope<IReadOnlyList<SubstitutionDto>>>> Substitutions(
+        string ingredientId,
+        CancellationToken cancellationToken)
     {
-        //var userId = User.GetUserId();
-        var userId = "dev-user-sihle";
+        var userId = User.GetUserId();
         if (userId is null)
+        {
             return Unauthorized(ApiEnvelope<IReadOnlyList<SubstitutionDto>>.Fail("Authentication is required."));
+        }
+
         if (string.IsNullOrWhiteSpace(ingredientId))
+        {
             return BadRequest(ApiEnvelope<IReadOnlyList<SubstitutionDto>>.Fail("ingredientId is required."));
+        }
 
         var pantry = await _store.GetPantryAsync(userId, cancellationToken);
         var pantryNames = pantry
@@ -198,29 +223,7 @@ public sealed class GroupBacklogController : ControllerBase
             });
         }
 
-        // Prefer alternatives the user already owns.
         return Ok(ApiEnvelope<IReadOnlyList<SubstitutionDto>>.Ok(
             result.OrderByDescending(s => s.InPantry).ThenBy(s => s.AlternativeName).ToList()));
     }
-=======
-    /// <summary>Blessing: generate a de-duplicated shopping list from recipe ids.</summary>
-    [HttpPost("shopping-lists/generate")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult GenerateShoppingList() =>
-        StatusCode(StatusCodes.Status501NotImplemented,
-            ApiEnvelope<string>.Fail("Assigned to Blessing: implement shopping-list generation."));
-
-    [HttpGet("shopping-lists")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult ListShoppingLists() =>
-        StatusCode(StatusCodes.Status501NotImplemented,
-            ApiEnvelope<string>.Fail("Assigned to Blessing: implement shopping-list CRUD."));
-
-    /// <summary>Blessing: return pantry-aware substitutions for a missing ingredient.</summary>
-    [HttpGet("substitutions/{ingredientId}")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public IActionResult Substitutions(string ingredientId) =>
-        StatusCode(StatusCodes.Status501NotImplemented,
-            ApiEnvelope<string>.Fail($"Assigned to Blessing: substitutions for '{ingredientId}'."));
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }

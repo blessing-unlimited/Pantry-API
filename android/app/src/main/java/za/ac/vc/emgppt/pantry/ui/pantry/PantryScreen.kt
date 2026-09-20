@@ -46,6 +46,7 @@ fun PantryScreen(
     state: MainUiState,
     viewModel: MainViewModel,
     onScanClick: () -> Unit,
+    onListsClick: () -> Unit,
     contentPadding: PaddingValues
 ) {
     var name by remember { mutableStateOf("") }
@@ -105,7 +106,10 @@ fun PantryScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
         ) { Text("Save to pantry", style = MaterialTheme.typography.labelLarge) }
         OutlinedButton(onClick = onScanClick, modifier = Modifier.fillMaxWidth()) {
-            Text("Scan with camera (Blessing)")
+            Text("Scan with camera")
+        }
+        OutlinedButton(onClick = onListsClick, modifier = Modifier.fillMaxWidth()) {
+            Text("Shopping lists")
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             items(state.pantry, key = { it.id }) { item ->

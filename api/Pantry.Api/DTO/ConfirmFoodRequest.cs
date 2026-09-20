@@ -31,4 +31,18 @@ namespace Pantry.Api.DTO
         public double? Confidence { get; set; }
         public string Message { get; set; } = string.Empty;
     }
+
+    public class IdentifyFoodResponse
+    {
+        public long ImageId { get; set; }
+        public List<string> Foods { get; set; } = [];
+        public IdentifyTopMatch? TopMatch { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public class IdentifyTopMatch
+    {
+        public string Name { get; set; } = string.Empty;
+        public double Confidence { get; set; }
+    }
 }

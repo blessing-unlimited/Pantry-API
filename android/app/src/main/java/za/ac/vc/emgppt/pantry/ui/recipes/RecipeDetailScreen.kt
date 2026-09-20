@@ -36,11 +36,16 @@ import za.ac.vc.emgppt.pantry.ui.theme.Terracotta
 fun RecipeDetailScreen(
     recipeId: String,
     viewModel: MainViewModel,
-    onStartCooking: () -> Unit
+    onStartCooking: () -> Unit,
+    onOpenShoppingLists: () -> Unit
 ) {
     val uiState by viewModel.state.collectAsState()
     val detail = uiState.recipeDetail
     LaunchedEffect(recipeId) { viewModel.loadRecipe(recipeId) }
+    LaunchedEffect(detail?.id) {
+        val missing = detail?.ingredients?.filter { !it.inPantry }?.map { it.name }.orEmpty()
+        if (missing.isNotEmpty()) viewModel.loadSubstitutions(missing)
+    }
 
     if (detail == null || detail.id != recipeId) {
         Text("Loading recipe…", modifier = Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
@@ -82,12 +87,27 @@ fun RecipeDetailScreen(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
+            if (!ingredient.inPantry) {
+                val alts = uiState.substitutions[ingredient.name].orEmpty()
+                if (alts.isNotEmpty()) {
+                    Text(
+                        "Try: " + alts.take(2).joinToString { alt ->
+                            alt.alternativeName + if (alt.inPantry) " (in pantry)" else ""
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Basil,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         }
         OutlinedButton(
-            onClick = { /* Blessing: push missing items to a shopping list */ },
+            onClick = {
+                viewModel.generateShoppingList(detail.id, detail.title, onOpenShoppingLists)
+            },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
-            Text("Add missing (${detail.pantryNeedCount}) — Blessing")
+            Text("Add missing (${detail.pantryNeedCount}) to shopping list")
         }
         Button(
             onClick = onStartCooking,

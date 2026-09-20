@@ -47,6 +47,7 @@ import za.ac.vc.emgppt.pantry.ui.pantry.PantryScreen
 import za.ac.vc.emgppt.pantry.ui.recipes.RecipeDetailScreen
 import za.ac.vc.emgppt.pantry.ui.recipes.RecipesScreen
 import za.ac.vc.emgppt.pantry.ui.settings.SettingsScreen
+import za.ac.vc.emgppt.pantry.ui.shopping.ShoppingListsScreen
 import za.ac.vc.emgppt.pantry.ui.theme.Cream
 import za.ac.vc.emgppt.pantry.ui.theme.Ivory
 import za.ac.vc.emgppt.pantry.ui.theme.PantryTheme
@@ -178,7 +179,13 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
                 }
             }
             composable("pantry") {
-                PantryScreen(state, mainViewModel, onScanClick = { navController.navigate("scan") }, contentPadding = padding)
+                PantryScreen(
+                    state,
+                    mainViewModel,
+                    onScanClick = { navController.navigate("scan") },
+                    onListsClick = { navController.navigate("lists") },
+                    contentPadding = padding
+                )
             }
             composable("recipes") {
                 RecipesScreen(state, mainViewModel, onRecipeClick = { navController.navigate("recipe/$it") }, contentPadding = padding)
@@ -199,7 +206,12 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
                 arguments = listOf(navArgument("id") { type = NavType.StringType })
             ) { entry ->
                 val id = entry.arguments?.getString("id").orEmpty()
-                RecipeDetailScreen(id, mainViewModel, onStartCooking = { navController.navigate("cook/$id") })
+                RecipeDetailScreen(
+                    id,
+                    mainViewModel,
+                    onStartCooking = { navController.navigate("cook/$id") },
+                    onOpenShoppingLists = { navController.navigate("lists") }
+                )
             }
             composable(
                 "cook/{id}",
@@ -207,7 +219,14 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
             ) {
                 CookModeScreen(mainViewModel.state.value.recipeDetail)
             }
-            composable("scan") { ScanScreen() }
+            composable("scan") {
+                ScanScreen(mainViewModel) {
+                    navController.popBackStack()
+                }
+            }
+            composable("lists") {
+                ShoppingListsScreen(state, mainViewModel, contentPadding = padding)
+            }
         }
     }
 }

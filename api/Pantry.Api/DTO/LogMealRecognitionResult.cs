@@ -8,7 +8,7 @@ namespace Pantry.Api.DTO
         public long ImageId { get; set; }
 
         [JsonPropertyName("segmentation_results")]
-        public List<SegmentationResult> SegmenationResults { get; set; }
+        public List<SegmentationResult>? SegmenationResults { get; set; }
     }
 
     public class SegmentationResult

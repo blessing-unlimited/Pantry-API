@@ -1,19 +1,9 @@
-<<<<<<< HEAD
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.Extensions.Options;
-using Pantry.Api.Models;
-using Pantry.Api.Options;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-=======
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Pantry.Api.Models;
 using Pantry.Api.Options;
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 namespace Pantry.Api.Services;
 
@@ -36,17 +26,16 @@ public interface IUserStore
     Task<PantryItem?> UpdatePantryItemAsync(string userId, string itemId, PantryItem item, CancellationToken cancellationToken);
 
     Task<bool> DeletePantryItemAsync(string userId, string itemId, CancellationToken cancellationToken);
-<<<<<<< HEAD
 
-    // Shopping lists — Blessing
     Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken);
-    Task<ShoppingList?> GetShoppingListAsync(string userId, string listId, CancellationToken cancellationToken);
-    Task<ShoppingList> AddShoppingListAsync(string userId, ShoppingList list, CancellationToken cancellationToken);
-    Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken);
-    Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken);
 
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
+    Task<ShoppingList?> GetShoppingListAsync(string userId, string listId, CancellationToken cancellationToken);
+
+    Task<ShoppingList> AddShoppingListAsync(string userId, ShoppingList list, CancellationToken cancellationToken);
+
+    Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken);
+
+    Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -179,6 +168,84 @@ public sealed class FirebaseUserStore : IUserStore
         return true;
     }
 
+    public async Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken)
+    {
+        var nodes = await GetJsonAsync<Dictionary<string, ShoppingList>>($"users/{userId}/shoppingLists.json", cancellationToken);
+        if (nodes is null || nodes.Count == 0)
+        {
+            return [];
+        }
+
+        var lists = new List<ShoppingList>();
+        foreach (var (id, list) in nodes)
+        {
+            list.Id = id;
+            lists.Add(list);
+        }
+
+        return lists.OrderByDescending(l => l.CreateAt).ToList();
+    }
+
+    public async Task<ShoppingList?> GetShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
+    {
+        var list = await GetJsonAsync<ShoppingList>($"users/{userId}/shoppingLists/{listId}.json", cancellationToken);
+        if (list is null)
+        {
+            return null;
+        }
+
+        list.Id = listId;
+        return list;
+    }
+
+    public async Task<ShoppingList> AddShoppingListAsync(string userId, ShoppingList list, CancellationToken cancellationToken)
+    {
+        EnsureConfigured();
+        var response = await _httpClient.PostAsJsonAsync(
+            BuildPath($"users/{userId}/shoppingLists.json"),
+            list,
+            JsonOptions,
+            cancellationToken);
+        var body = await ReadBodyAsync(response, cancellationToken);
+        var created = JsonSerializer.Deserialize<FirebaseNameResponse>(body, JsonOptions);
+        if (string.IsNullOrWhiteSpace(created?.Name))
+        {
+            throw new InvalidOperationException("Firebase did not return a generated shopping list id.");
+        }
+
+        list.Id = created.Name;
+        _logger.LogInformation("Created shopping list {ListId} for user {UserId}", list.Id, userId);
+        return list;
+    }
+
+    public async Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken)
+    {
+        var existing = await GetShoppingListAsync(userId, listId, cancellationToken);
+        if (existing is null)
+        {
+            return null;
+        }
+
+        list.Id = listId;
+        list.CreateAt = existing.CreateAt;
+        await PutJsonAsync($"users/{userId}/shoppingLists/{listId}.json", list, cancellationToken);
+        return list;
+    }
+
+    public async Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
+    {
+        var existing = await GetShoppingListAsync(userId, listId, cancellationToken);
+        if (existing is null)
+        {
+            return false;
+        }
+
+        EnsureConfigured();
+        var response = await _httpClient.DeleteAsync(BuildPath($"users/{userId}/shoppingLists/{listId}.json"), cancellationToken);
+        await ReadBodyAsync(response, cancellationToken);
+        return true;
+    }
+
     private async Task<T?> GetJsonAsync<T>(string path, CancellationToken cancellationToken)
     {
         EnsureConfigured();
@@ -234,70 +301,4 @@ public sealed class FirebaseUserStore : IUserStore
     {
         public string? Name { get; set; }
     }
-<<<<<<< HEAD
-
-    // ===== Shopping Lists (Blessing) =====
-    public async Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken)
-    {
-        //Gets all the shopping lists belonging the user specified by the user Id
-        var nodes = await GetJsonAsync<Dictionary<string, ShoppingList>>($"users/{userId}/shoppingLists.json", cancellationToken);
-        if (nodes is null || nodes.Count == 0) return [];
-
-        var lists = new List<ShoppingList>();
-        foreach (var (id, list) in nodes)
-        {
-            list.Id = id;
-            lists.Add(list);
-        }
-        return lists.OrderByDescending(l => l.CreateAt).ToList();
-    }
-
-    public async Task<ShoppingList?> GetShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
-    {
-        //Gets shopping list belonging the user specified by the user Id
-        var list = await GetJsonAsync<ShoppingList>($"users/{userId}/shoppingLists/{listId}.json", cancellationToken);
-        if (list is null) return null;
-        list.Id = listId;
-        return list;
-    }
-
-    public async Task<ShoppingList> AddShoppingListAsync(string userId, ShoppingList list, CancellationToken cancellationToken)
-    {
-        //Ensuring that the Firebaseclient is ready
-        EnsureConfigured();
-        var response = await _httpClient.PostAsJsonAsync( BuildPath($"users/{userId}/shoppingLists.json"), list, JsonOptions, cancellationToken);
-        var body = await ReadBodyAsync(response, cancellationToken);
-        var created = JsonSerializer.Deserialize<FirebaseNameResponse>(body, JsonOptions);
-        if (string.IsNullOrWhiteSpace(created?.Name))
-            throw new InvalidOperationException("Firebase did not return a generated shopping list id.");
-
-        list.Id = created.Name;
-        _logger.LogInformation("Created shopping list {ListId} for user {UserId}", list.Id, userId);
-        return list;
-    }
-
-    public async Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken)
-    {
-        var existing = await GetShoppingListAsync(userId, listId, cancellationToken);
-        if (existing is null) return null;
-
-        list.Id = listId;
-        list.CreateAt = existing.CreateAt;
-        await PutJsonAsync($"users/{userId}/shoppingLists/{listId}.json", list, cancellationToken);
-        return list;
-    }
-
-    public async Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
-    {
-        var existing = await GetShoppingListAsync(userId, listId, cancellationToken);
-        if (existing is null) return false;
-
-        EnsureConfigured();
-        var response = await _httpClient.DeleteAsync(BuildPath($"users/{userId}/shoppingLists/{listId}.json"), cancellationToken);
-        await ReadBodyAsync(response, cancellationToken);
-        return true;
-    }
-
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 }

@@ -47,20 +47,3 @@ fun CookModeScreen(recipe: RecipeDetailDto?) {
     }
 }
 
-/**
- * Blessing: CameraX preview + ingredient confirmation.
- * Part 1 specified live bounding boxes and a confirm-before-save step.
- */
-@Composable
-fun ScanScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Ingredient scan", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            "Assigned to Blessing. Implement CameraX capture, optional ML Kit labelling, " +
-                "and a confirmation list with quantity steppers before calling POST /api/v1/pantry-items."
-        )
-    }
-}

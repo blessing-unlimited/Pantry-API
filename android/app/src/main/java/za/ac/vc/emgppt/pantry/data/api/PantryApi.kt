@@ -1,11 +1,14 @@
 package za.ac.vc.emgppt.pantry.data.api
 
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -52,4 +55,29 @@ interface PantryApi {
 
     @GET("api/v1/recipes/{id}")
     suspend fun getRecipe(@Path("id") id: String): ApiEnvelope<RecipeDetailDto>
+
+    @Multipart
+    @POST("api/v1/food-recognition/identify")
+    suspend fun identifyFood(@Part image: MultipartBody.Part): ApiEnvelope<IdentifyFoodResponse>
+
+    @POST("api/v1/food-recognition/confirm")
+    suspend fun confirmFood(@Body request: ConfirmFoodRequest): ApiEnvelope<ConfirmFoodResponse>
+
+    @POST("api/v1/shopping-lists/generate")
+    suspend fun generateShoppingList(@Body request: GenerateShoppingListRequest): ApiEnvelope<ShoppingListDto>
+
+    @GET("api/v1/shopping-lists")
+    suspend fun listShoppingLists(): ApiEnvelope<List<ShoppingListDto>>
+
+    @GET("api/v1/shopping-lists/{id}")
+    suspend fun getShoppingList(@Path("id") id: String): ApiEnvelope<ShoppingListDto>
+
+    @PATCH("api/v1/shopping-lists/{id}")
+    suspend fun updateShoppingList(
+        @Path("id") id: String,
+        @Body request: UpdateShoppingListRequest
+    ): ApiEnvelope<ShoppingListDto>
+
+    @GET("api/v1/substitutions/{ingredientId}")
+    suspend fun substitutions(@Path("ingredientId") ingredientId: String): ApiEnvelope<List<SubstitutionDto>>
 }

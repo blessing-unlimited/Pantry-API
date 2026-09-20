@@ -8,11 +8,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import za.ac.vc.emgppt.pantry.data.ServiceLocator
 import za.ac.vc.emgppt.pantry.data.api.CreatePantryItemRequest
+import za.ac.vc.emgppt.pantry.data.api.GenerateShoppingListRequest
 import za.ac.vc.emgppt.pantry.data.api.IngredientDto
 import za.ac.vc.emgppt.pantry.data.api.PantryItemDto
 import za.ac.vc.emgppt.pantry.data.api.RecipeDetailDto
 import za.ac.vc.emgppt.pantry.data.api.RecipeMatchRequest
 import za.ac.vc.emgppt.pantry.data.api.RecipeSummaryDto
+import za.ac.vc.emgppt.pantry.data.api.ShoppingListDto
+import za.ac.vc.emgppt.pantry.data.api.ShoppingListItemDto
+import za.ac.vc.emgppt.pantry.data.api.SubstitutionDto
+import za.ac.vc.emgppt.pantry.data.api.UpdateShoppingListRequest
 import za.ac.vc.emgppt.pantry.data.api.UserSettings
 
 data class MainUiState(
@@ -23,7 +28,9 @@ data class MainUiState(
     val settings: UserSettings = UserSettings(),
     val ingredientSuggestions: List<IngredientDto> = emptyList(),
     val recipeDetail: RecipeDetailDto? = null,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val shoppingLists: List<ShoppingListDto> = emptyList(),
+    val substitutions: Map<String, List<SubstitutionDto>> = emptyMap()
 )
 
 class MainViewModel : ViewModel() {
@@ -152,5 +159,81 @@ class MainViewModel : ViewModel() {
 
     fun consumeMessage() {
         _state.value = _state.value.copy(message = null)
+    }
+
+    fun loadShoppingLists() {
+        viewModelScope.launch {
+            try {
+                val lists = ServiceLocator.api.listShoppingLists().data.orEmpty()
+                _state.value = _state.value.copy(shoppingLists = lists)
+            } catch (ex: Exception) {
+                Log.e("Pantry", "loadShoppingLists failed", ex)
+                _state.value = _state.value.copy(message = ex.message)
+            }
+        }
+    }
+
+    fun generateShoppingList(recipeId: String, recipeTitle: String, onCreated: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = ServiceLocator.api.generateShoppingList(
+                    GenerateShoppingListRequest(listOf(recipeId), "Missing for $recipeTitle")
+                )
+                if (created.success && created.data != null) {
+                    _state.value = _state.value.copy(
+                        shoppingLists = listOf(created.data) + _state.value.shoppingLists.filter { it.id != created.data.id },
+                        message = "Shopping list saved (${created.data.items.size} items)."
+                    )
+                    onCreated()
+                } else {
+                    _state.value = _state.value.copy(message = created.error ?: "Could not generate a shopping list.")
+                }
+            } catch (ex: Exception) {
+                _state.value = _state.value.copy(message = ex.message)
+            }
+        }
+    }
+
+    fun toggleShoppingItem(listId: String, target: ShoppingListItemDto, checked: Boolean) {
+        viewModelScope.launch {
+            val current = _state.value.shoppingLists.firstOrNull { it.id == listId } ?: return@launch
+            val updatedItems = current.items.map { item ->
+                if (item.ingredientName == target.ingredientName && item.quantity == target.quantity) {
+                    item.copy(isChecked = checked)
+                } else {
+                    item
+                }
+            }
+            try {
+                val saved = ServiceLocator.api.updateShoppingList(
+                    listId,
+                    UpdateShoppingListRequest(items = updatedItems)
+                )
+                if (saved.success && saved.data != null) {
+                    _state.value = _state.value.copy(
+                        shoppingLists = _state.value.shoppingLists.map { if (it.id == listId) saved.data else it }
+                    )
+                } else {
+                    _state.value = _state.value.copy(message = saved.error)
+                }
+            } catch (ex: Exception) {
+                _state.value = _state.value.copy(message = ex.message)
+            }
+        }
+    }
+
+    fun loadSubstitutions(names: List<String>) {
+        viewModelScope.launch {
+            val map = mutableMapOf<String, List<SubstitutionDto>>()
+            names.distinct().take(6).forEach { name ->
+                try {
+                    val alts = ServiceLocator.api.substitutions(name).data.orEmpty()
+                    if (alts.isNotEmpty()) map[name] = alts
+                } catch (ex: Exception) {
+                    Log.w("Pantry", "substitutions failed for $name: ${ex.message}")
+                }
+            }
+            _state.value = _state.value.copy(substitutions = map)
+        }
     }
 }

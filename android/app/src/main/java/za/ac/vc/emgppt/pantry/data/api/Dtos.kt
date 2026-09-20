@@ -99,3 +99,63 @@ data class IngredientDto(
     val description: String?,
     val thumbnailUrl: String?
 )
+
+data class IdentifyFoodResponse(
+    val imageId: Long = 0,
+    val foods: List<String> = emptyList(),
+    val topMatch: IdentifyTopMatch? = null,
+    val message: String? = null
+)
+
+data class IdentifyTopMatch(
+    val name: String = "",
+    val confidence: Double = 0.0
+)
+
+data class ConfirmFoodRequest(
+    val imageId: Long,
+    val selectedFood: String,
+    val allowCustomName: Boolean = false
+)
+
+data class ConfirmFoodResponse(
+    val imageId: Long = 0,
+    val confirmedFood: String = "",
+    val wasFromSuggestions: Boolean = false,
+    val confidence: Double? = null,
+    val message: String = ""
+)
+
+data class ShoppingListDto(
+    val id: String = "",
+    val name: String = "",
+    val sourceRecipeIds: List<String> = emptyList(),
+    val items: List<ShoppingListItemDto> = emptyList(),
+    val createAt: String? = null,
+    val updatedAt: String? = null
+)
+
+data class ShoppingListItemDto(
+    val ingredientName: String = "",
+    val quantity: Double? = null,
+    val unit: String? = null,
+    val isChecked: Boolean = false,
+    val sourceRecipeTitles: List<String> = emptyList()
+)
+
+data class GenerateShoppingListRequest(
+    val recipeIds: List<String>,
+    val name: String? = null
+)
+
+data class UpdateShoppingListRequest(
+    val name: String? = null,
+    val items: List<ShoppingListItemDto>? = null
+)
+
+data class SubstitutionDto(
+    val ingredientName: String = "",
+    val alternativeName: String = "",
+    val inPantry: Boolean = false,
+    val ratioHint: String? = null
+)

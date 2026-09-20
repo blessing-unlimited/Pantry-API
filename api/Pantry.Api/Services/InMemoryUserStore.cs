@@ -13,15 +13,9 @@ public sealed class InMemoryUserStore : IUserStore
     private readonly ConcurrentDictionary<string, UserProfile> _profiles = new();
     private readonly ConcurrentDictionary<string, UserSettings> _settings = new();
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, PantryItem>> _pantries = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ShoppingList>> _shoppingLists = new();
     private readonly ILogger<InMemoryUserStore> _logger;
 
-<<<<<<< HEAD
-    // Blessing
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, ShoppingList>> _shoppingLists = new();
-
-
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
     public InMemoryUserStore(ILogger<InMemoryUserStore> logger)
     {
         _logger = logger;
@@ -100,18 +94,6 @@ public sealed class InMemoryUserStore : IUserStore
         return Task.FromResult(pantry.TryRemove(itemId, out _));
     }
 
-    private static UserSettings CloneSettings(UserSettings settings) => new()
-    {
-        LanguageCode = settings.LanguageCode,
-        DietaryPreferences = [.. settings.DietaryPreferences],
-        CuisinePreferences = [.. settings.CuisinePreferences],
-        Allergens = [.. settings.Allergens],
-        NotificationsEnabled = settings.NotificationsEnabled,
-        MaxMissingIngredients = settings.MaxMissingIngredients
-    };
-<<<<<<< HEAD
-
-    // ===== Shopping Lists (Blessing) =====
     public Task<IReadOnlyList<ShoppingList>> GetShoppingListsAsync(string userId, CancellationToken cancellationToken)
     {
         var userLists = _shoppingLists.GetOrAdd(userId, _ => new ConcurrentDictionary<string, ShoppingList>());
@@ -122,7 +104,10 @@ public sealed class InMemoryUserStore : IUserStore
     public Task<ShoppingList?> GetShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
     {
         if (_shoppingLists.TryGetValue(userId, out var lists) && lists.TryGetValue(listId, out var list))
+        {
             return Task.FromResult<ShoppingList?>(list);
+        }
+
         return Task.FromResult<ShoppingList?>(null);
     }
 
@@ -137,7 +122,9 @@ public sealed class InMemoryUserStore : IUserStore
     public Task<ShoppingList?> UpdateShoppingListAsync(string userId, string listId, ShoppingList list, CancellationToken cancellationToken)
     {
         if (!_shoppingLists.TryGetValue(userId, out var lists) || !lists.TryGetValue(listId, out var existing))
+        {
             return Task.FromResult<ShoppingList?>(null);
+        }
 
         list.Id = listId;
         list.CreateAt = existing.CreateAt;
@@ -148,9 +135,20 @@ public sealed class InMemoryUserStore : IUserStore
     public Task<bool> DeleteShoppingListAsync(string userId, string listId, CancellationToken cancellationToken)
     {
         if (!_shoppingLists.TryGetValue(userId, out var lists))
+        {
             return Task.FromResult(false);
+        }
+
         return Task.FromResult(lists.TryRemove(listId, out _));
     }
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
+
+    private static UserSettings CloneSettings(UserSettings settings) => new()
+    {
+        LanguageCode = settings.LanguageCode,
+        DietaryPreferences = [.. settings.DietaryPreferences],
+        CuisinePreferences = [.. settings.CuisinePreferences],
+        Allergens = [.. settings.Allergens],
+        NotificationsEnabled = settings.NotificationsEnabled,
+        MaxMissingIngredients = settings.MaxMissingIngredients
+    };
 }

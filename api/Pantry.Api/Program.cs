@@ -1,18 +1,11 @@
-<<<<<<< HEAD
-=======
+using System.Net.Http.Headers;
 using System.Reflection;
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Pantry.Api.Auth;
 using Pantry.Api.Options;
 using Pantry.Api.Services;
-<<<<<<< HEAD
-using System.Net.Http.Headers;
-using System.Reflection;
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,23 +40,23 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Custom hosted API for the Pantry Android prototype. Recipe catalogue data is sourced from TheMealDB; pantry, settings and profiles are stored in Firebase Realtime Database when configured (TheMealDB, 2026; Firebase, 2026)."
     });
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Firebase / Google ID token, or Development bypass token `dev-token`. Example: Bearer dev-token",
         Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            new OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                Reference = new OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
             },
@@ -84,22 +77,18 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
-<<<<<<< HEAD
 builder.Services.AddHttpClient<ILogMealService, LogMealService>(client =>
 {
     client.BaseAddress = new Uri("https://api.logmeal.com/");
-
-    // Set the Bearer token from configuration
     var token = builder.Configuration["LogMeal:ApiToken"];
-    client.DefaultRequestHeaders.Authorization =
-        new AuthenticationHeaderValue("Bearer", token);
+    if (!string.IsNullOrWhiteSpace(token))
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
 
-    // Optional: set a timeout
     client.Timeout = TimeSpan.FromSeconds(60);
 });
 
-=======
->>>>>>> bca26ea04a8b912ed3a0f95f71dc1f79d4e1ba0b
 var app = builder.Build();
 
 app.UseExceptionHandler(errorApp =>

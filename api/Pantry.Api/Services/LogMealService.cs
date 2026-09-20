@@ -32,7 +32,9 @@ namespace Pantry.Api.Services
             byte[] imageBytes;
             string fileName;
 
-            if (image.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
+            var contentType = image.ContentType ?? string.Empty;
+            if (contentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase) ||
+                contentType.Equals("image/jpg", StringComparison.OrdinalIgnoreCase))
             {
                 using var ms = new MemoryStream();
                 await image.CopyToAsync(ms, cancellationToken);
