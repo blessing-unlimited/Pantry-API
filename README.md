@@ -4,7 +4,7 @@ Pantry is an Android recipe app that starts from **what is already in the kitche
 
 This repository is the Part 2 prototype for group **EMGPPT**: Sihle Nathi Simelane (`Sihl3s`), Blessing Makhukhula (`blessing-unlimited`), Regopotsoe Lesedi Khutoane (`ST10443296`), and Nomathamsanqa Tame (`NomathamsanqaTame`).
 
-The custom ASP.NET API does the heavy lifting. TheMealDB is only the recipe catalogue; pantry items, settings, and profiles are stored by the API (in-memory on localhost, Firebase Realtime Database when `Firebase:BaseUrl` is set) (TheMealDB, 2026; Firebase, 2026).
+The custom ASP.NET API does the heavy lifting. TheMealDB is only the recipe catalogue; pantry items, settings, shopping lists, and profiles are stored by the API (in-memory on localhost, Firebase Realtime Database when `Firebase:BaseUrl` is set). Camera photos are identified through LogMeal on the API so the key never ships in the APK (TheMealDB, 2026; Firebase, 2026; LogMeal API, 2026).
 
 ## Demonstration video
 
@@ -12,7 +12,7 @@ Thami will add an unlisted YouTube link here after the physical-device recording
 
 > **Video:** _pending — Nomathamsanqa Tame_
 
-Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--demo-video-readme-media-icon-polish).
+Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--demo-video-readme-media-icon-polish). Scan and shopping lists are already on `main` and can be filmed.
 
 ## Architecture
 
@@ -22,17 +22,18 @@ flowchart LR
   CustomApi --> FirebaseAuth["Firebase Authentication"]
   CustomApi --> FirebaseDb["Firebase Realtime Database"]
   CustomApi --> MealDb["TheMealDB"]
+  CustomApi --> LogMeal["LogMeal food recognition"]
 ```
 
 MVVM on Android keeps screens thin. Retrofit talks only to `/api/v1/*`. Reverse-pantry ranking runs on the API because TheMealDB's free filter accepts **one** ingredient per call (TheMealDB, 2026; Android Developers, 2024).
 
 ### Part 2 scope
 
-Included now: SSO session (`POST /api/v1/auth/sso`), settings, pantry CRUD, recipe search/detail, reverse-pantry match, unit tests, GitHub Actions, comments with citations.
+Included now: SSO session (`POST /api/v1/auth/sso`), settings, pantry CRUD, recipe search/detail, reverse-pantry match, shopping-list generate/CRUD, substitutions, LogMeal photo identify/confirm, CameraX/gallery scan, unit tests, GitHub Actions, comments with citations.
 
 Deferred to the final POE (assignment brief): biometrics, offline Room sync, push notifications, multi-language.
 
-**Blessing, Lesedi, and Thami still have assigned work** — follow the step-by-step checklists in [Work still to do](#work-still-to-do-classmates).
+**Lesedi and Thami still have assigned work.** Blessing's remaining work is Firebase Google SSO and hosting the API for the video — see [Work still to do](#work-still-to-do-classmates).
 
 ## Sihle Nathi Simelane (`Sihl3s`) — work on `main`
 
@@ -41,8 +42,16 @@ Sihle built the Part 2 vertical slice that the rest of the group extends:
 - **Custom REST API** (`api/Pantry.Api`): SSO session (`POST /api/v1/auth/sso`), user settings, pantry CRUD, ingredient search, recipe search/detail, and the reverse-pantry **match** endpoint that ranks TheMealDB meals against the signed-in user's pantry (match %, have/missing counts). Firebase Realtime Database store when `Firebase:BaseUrl` is set; in-memory store for localhost.
 - **Android client** (`android/`): Kotlin + Jetpack Compose MVVM app with splash, Google Sign-In plus local demo SSO, bottom navigation (Home, Pantry, Recipes, Profile), pantry add/remove, ranked recipe cards, recipe detail, and settings saved through the API.
 - **Part 1 brand:** terracotta / basil / cream theme, Playfair Display + Source Sans 3, plate-and-steam logo, branded splash and sign-in header, circular recipe thumbs, readiness lines, and terracotta-pill bottom nav.
-- **Quality / DevOps:** xUnit matching tests, JUnit helpers on Android, GitHub Actions (`api-ci` and `android-ci`), README run steps, and the classmate owner checklists so Blessing, Lesedi, and Thami can commit from their own accounts.
-- **Help on Blessing's slice:** merge-conflict cleanup on his shopping-list / LogMeal commits, CameraX + gallery scan UI against `POST /api/v1/food-recognition`, and the shopping-list screen. Firebase hosting and Google SSO client files remain Blessing's.
+- **Quality / DevOps:** xUnit matching and shopping-list tests, JUnit helpers on Android, GitHub Actions (`api-ci` and `android-ci`; Android SDK setup uses current `platform-tools`), README run steps, and the classmate owner checklists so Blessing, Lesedi, and Thami can commit from their own accounts.
+- **Help on Blessing's slice:** merge-conflict cleanup on his shopping-list / LogMeal commits, CameraX + gallery scan UI against `POST /api/v1/food-recognition`, shopping-list screen, and wiring shopping generate to recipe detail. Firebase hosting and Google SSO client files remain Blessing's.
+
+## Blessing Makhukhula (`blessing-unlimited`) — work on `main`
+
+Blessing added the Part 1 custom features that sit on top of Sihle's SSO / pantry / match slice:
+
+- **Shopping lists:** `POST /api/v1/shopping-lists/generate` from recipe ids, list/get/patch/delete, de-duplicated missing ingredients tagged with source recipe titles (`ShoppingListGenerator`).
+- **Substitutions:** `GET /api/v1/substitutions/{ingredientId}` with pantry-aware alternatives.
+- **Food recognition:** LogMeal image segmentation (`LogMealService`, `POST /api/v1/food-recognition/identify` and `/confirm`) so a photo can suggest ingredient names. Set `LogMeal:ApiToken` with user secrets — never commit the key.
 
 ## How to run the API (localhost)
 
@@ -62,8 +71,16 @@ In Swagger click **Authorize** and enter `dev-token` (Development only). Then:
 1. `POST /api/v1/auth/sso` with `{ "idToken": "dev-token", "displayName": "Sihle" }`
 2. `POST /api/v1/pantry-items` with `{ "ingredientName": "chicken" }`
 3. `POST /api/v1/recipes/match` — ranked TheMealDB recipes with missing-ingredient counts
+4. `POST /api/v1/shopping-lists/generate` with `{ "recipeIds": ["52772"] }` after matching a recipe
+5. Optional: set `LogMeal:ApiToken`, then `POST /api/v1/food-recognition/identify` with an image file
 
 Sample requests: [api/Pantry.Api/Pantry.Api.http](api/Pantry.Api/Pantry.Api.http).
+
+For photo recognition on localhost:
+
+```bash
+dotnet user-secrets set "LogMeal:ApiToken" "YOUR_TOKEN" --project api/Pantry.Api
+```
 
 ### Persist to Firebase
 
@@ -85,13 +102,14 @@ Use test-mode rules for the prototype, then lock them down (OWASP, 2023). Never 
 3. Start the API on port 5080 first.
 4. Run on an **emulator**. Debug builds call `http://10.0.2.2:5080/` (the host loopback alias) (Android Developers, 2024).
 5. Tap **Continue with Google**. If `default_web_client_id` is still the placeholder, use **Continue (local demo SSO)** so the prototype can be shown before Firebase is wired.
-6. Physical phone: put your PC and phone on the same Wi-Fi, allow port 5080 through the firewall, and change `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) to `http://YOUR_LAN_IP:5080/`.
+6. Demo path: add pantry items (or **Scan with camera** / gallery) → Home ranked recipes → open a recipe → **Add missing** → **Shopping lists**.
+7. Physical phone: put your PC and phone on the same Wi-Fi, allow port 5080 through the firewall, and change `API_BASE_URL` in [android/app/build.gradle.kts](android/app/build.gradle.kts) to `http://YOUR_LAN_IP:5080/`.
 
 Copy [android/app/google-services.json.example](android/app/google-services.json.example) to `android/app/google-services.json` when the Firebase Android app is registered. The Google Services Gradle plugin applies automatically once that file exists.
 
 ## Work still to do (classmates)
 
-Commit from **your own GitHub account** so GitHub lists you as a contributor. Do not use Sihle's account. Clone this repo, create a branch named after yourself (for example `blessing/shopping-list`), push, and open a pull request into `main`.
+Commit from **your own GitHub account** so GitHub lists you as a contributor. Do not use Sihle's account. Clone this repo, create a branch named after yourself, push, and open a pull request into `main`.
 
 Shared setup before anyone codes:
 
@@ -104,17 +122,9 @@ Shared setup before anyone codes:
 
 ---
 
-### Blessing Makhukhula (`blessing-unlimited`) — API shopping lists, substitutions, scan, hosting
+### Blessing Makhukhula (`blessing-unlimited`) — Firebase Google SSO and hosted API
 
-Blessing's LogMeal food recognition and shopping-list API are on `main` (`FoodRecognitionController`, `ShoppingListGenerator`, store CRUD). Camera scan and shopping-list screens were wired so the prototype can be demonstrated. **Still Blessing's to finish for the video:** Firebase Google SSO, Realtime Database, and a public hosted API URL.
-
-Set the LogMeal key locally (do not commit it):
-
-```bash
-dotnet user-secrets set "LogMeal:ApiToken" "YOUR_TOKEN" --project api/Pantry.Api
-```
-
-Remaining hosting / Firebase steps:
+Shopping lists, substitutions, LogMeal identify/confirm, CameraX/gallery scan, and the shopping-list screen are already on `main`. **Still Blessing's to finish for Thami's video:** a school Firebase project and a public HTTPS API URL.
 
 1. Create a Firebase project: enable Authentication (Google), Realtime Database (test mode for the prototype), register Android package `za.ac.vc.emgppt.pantry`, download `google-services.json` into `android/app/` (do not commit secrets beyond the school project's client file if the lecturer expects it).
 2. Put the Web client ID in `android/app/src/main/res/values/strings.xml` (`default_web_client_id`) so **Continue with Google** returns a real ID token.
@@ -152,7 +162,7 @@ Remaining hosting / Firebase steps:
 4. **Settings:** open Profile, change dietary preferences or max missing ingredients, tap Save, then reopen the screen (or Swagger `GET /api/v1/users/me/settings`) to prove it persisted.
 5. **Web services:** add pantry items, open Home/Recipes, and show ranked matches from the custom API (not TheMealDB in a browser). Open a recipe detail so missing vs in-pantry is visible.
 6. **Data verification:** on camera, show three places for the same user: Firebase Authentication (user list), Swagger of the hosted API (pantry/match JSON), and Firebase Realtime Database (or the in-memory note only if Firebase is still empty — prefer real DB records).
-7. **Custom feature:** demonstrate reverse-pantry matching (match % and missing ingredients). Also film Lesedi's cook mode and Blessing's scan/shopping list if those are merged by recording day.
+7. **Custom feature:** demonstrate reverse-pantry matching (match % and missing ingredients). Also film **Scan with camera** (or gallery) adding a pantry item, and **Add missing** → shopping list checkboxes. Film Lesedi's cook mode if that is merged by recording day.
 8. Polish the app icon / splash if you want a visible commit (adaptive icon files under `android/app/src/main/res/`).
 9. Capture screenshots of splash, sign-in, home, pantry, recipe match, settings, and (if ready) cook mode / shopping list.
 10. Embed the unlisted YouTube link at the top of this README where it currently says `_pending — Nomathamsanqa Tame_`. Add the screenshots under a short "Screenshots" heading.
@@ -166,13 +176,13 @@ Work is committed incrementally on this repository (not ZIP uploads). Two workfl
 
 | Workflow | File | What it does |
 | --- | --- | --- |
-| API CI | [.github/workflows/api-ci.yml](.github/workflows/api-ci.yml) | `dotnet test` for reverse-pantry unit tests |
-| Android CI | [.github/workflows/android-ci.yml](.github/workflows/android-ci.yml) | JDK 17, Gradle `testDebugUnitTest`, `assembleDebug` |
+| API CI | [.github/workflows/api-ci.yml](.github/workflows/api-ci.yml) | `dotnet test` for reverse-pantry and shopping-list unit tests |
+| Android CI | [.github/workflows/android-ci.yml](.github/workflows/android-ci.yml) | JDK 17, current Android SDK `platform-tools`, Gradle `testDebugUnitTest`, `assembleDebug` |
 
 ## Project layout
 
 ```
-api/Pantry.Api/             Custom REST API (controllers, matching, Firebase store)
+api/Pantry.Api/             Custom REST API (match, pantry, shopping lists, LogMeal)
 api/Pantry.Api.Tests/       xUnit tests (no network)
 android/app/src/main/       Kotlin + Jetpack Compose client
 .github/workflows/          GitHub Actions
@@ -188,6 +198,8 @@ Android Developers (2024) *Retrofit and networking on Android*. Available at: ht
 Fielding, R., Nottingham, M. and Reschke, J. (2022) *RFC 9110: HTTP Semantics*. RFC Editor. Available at: https://www.rfc-editor.org/rfc/rfc9110.html (Accessed: 17 September 2026).
 
 Firebase (2026) *Firebase Authentication* and *Realtime Database REST API*. Available at: https://firebase.google.com/docs (Accessed: 17 September 2026).
+
+LogMeal API (2026) *Image segmentation complete*. Available at: https://docs.logmeal.com/reference/post_v2-image-segmentation-complete (Accessed: 20 September 2026).
 
 OWASP (2023) *OWASP API Security Top 10 – 2023*. Available at: https://owasp.org/API-Security/editions/2023/en/0x11-t10/ (Accessed: 17 September 2026).
 
