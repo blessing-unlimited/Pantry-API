@@ -21,7 +21,7 @@ android {
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Emulator loopback to the host machine running Pantry.Api (Android Developers, 2024).
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:5080/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:5080/\"")
         buildConfigField("Boolean", "ALLOW_DEV_SSO", "true")
     }
 
