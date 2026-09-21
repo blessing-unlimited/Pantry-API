@@ -38,6 +38,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import za.ac.vc.emgppt.pantry.ui.auth.AuthViewModel
+import za.ac.vc.emgppt.pantry.ui.auth.OnboardingScreen
 import za.ac.vc.emgppt.pantry.ui.auth.SignInScreen
 import za.ac.vc.emgppt.pantry.ui.group.CookModeScreen
 import za.ac.vc.emgppt.pantry.ui.group.ScanScreen
@@ -83,13 +84,18 @@ class MainActivity : ComponentActivity() {
 private fun PantryRoot(authViewModel: AuthViewModel) {
     val authState by authViewModel.state.collectAsState()
     val navController = rememberNavController()
-    val start = if (authState.signedIn) "main" else "splash"
+    val start = if (authState.signedIn) {
+        if (authState.isNewUser) "onboarding" else "main"
+    } else "splash"
 
     NavHost(navController = navController, startDestination = start) {
         composable("splash") {
             LaunchedEffect(authState.signedIn) {
                 kotlinx.coroutines.delay(1500)
-                navController.navigate(if (authState.signedIn) "main" else "signIn") {
+                val target = if (authState.signedIn) {
+                    if (authState.isNewUser) "onboarding" else "main"
+                } else "signIn"
+                navController.navigate(target) {
                     popUpTo("splash") { inclusive = true }
                 }
             }
@@ -97,7 +103,14 @@ private fun PantryRoot(authViewModel: AuthViewModel) {
         }
         composable("signIn") {
             SignInScreen(authViewModel) {
-                navController.navigate("main") { popUpTo("signIn") { inclusive = true } }
+                val target = if (authViewModel.state.value.isNewUser) "onboarding" else "main"
+                navController.navigate(target) { popUpTo("signIn") { inclusive = true } }
+            }
+        }
+        composable("onboarding") {
+            val mainViewModel: MainViewModel = viewModel()
+            OnboardingScreen(mainViewModel) {
+                navController.navigate("main") { popUpTo("onboarding") { inclusive = true } }
             }
         }
         composable("main") {
@@ -217,7 +230,8 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
                 "cook/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.StringType })
             ) {
-                CookModeScreen(mainViewModel.state.value.recipeDetail)
+                val cookState by mainViewModel.state.collectAsState()
+                CookModeScreen(cookState.recipeDetail)
             }
             composable("scan") {
                 ScanScreen(mainViewModel) {
