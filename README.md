@@ -14,6 +14,7 @@ Thami will add an unlisted YouTube link here after the physical-device recording
 - **Hosted API Base URL:** 'https://pantry-api-8x99.onrender.com/'
 - **Interactive Swagger Documentation:** [https://pantry-api-8x99.onrender.com/swagger/index.html]
 - **Part 2 Mobile App Demo:** [https://youtu.be/74z5YRa-JMU]
+- **Part 2 API, Swagger & Code Walkthrough:** [https://youtu.be/XWsTvCrPVqk] 
 
 Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--hosted-api-demo-video-readme-media). Scan and shopping lists are already on `main` and can be filmed.
 
