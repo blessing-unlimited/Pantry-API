@@ -28,6 +28,37 @@ Pantry is an Android recipe application that starts from **what is already in th
 | Live API | https://pantry-api-8x99.onrender.com/ |
 | Swagger | https://pantry-api-8x99.onrender.com/swagger/index.html |
 
+## Screenshots
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 09 55" src="https://github.com/user-attachments/assets/80a81667-3b42-4390-accd-bf2606480343" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 06" src="https://github.com/user-attachments/assets/e3459477-fd0f-4b66-b8a2-3606a5d1bf8c" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 09" src="https://github.com/user-attachments/assets/56758db2-d479-44ff-95fa-27aa86c13aee" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 15" src="https://github.com/user-attachments/assets/c7c0433f-2672-4815-9ac7-10ec5524677e" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 17" src="https://github.com/user-attachments/assets/b5ddf13b-2e00-49c9-9767-8806a3711431" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 20" src="https://github.com/user-attachments/assets/41aff376-6ad1-4d32-b702-31a431db36ea" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 24" src="https://github.com/user-attachments/assets/eb640274-9605-484f-aeb5-68e99553acbe" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 27" src="https://github.com/user-attachments/assets/03ddce27-09ad-4a49-abe6-83921d7b1d35" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 29" src="https://github.com/user-attachments/assets/aad48ce2-d5b5-406f-bb4a-1ded9eaf6dd9" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 30" src="https://github.com/user-attachments/assets/0efbb5c7-d41d-4730-9eea-da9dbc2666bc" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 32" src="https://github.com/user-attachments/assets/e91881cd-722a-48fa-a807-3dc46643a31f" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 35" src="https://github.com/user-attachments/assets/2bc7e5a2-1eb7-475d-bd7c-446aae8adb8a" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 39" src="https://github.com/user-attachments/assets/82dbecd4-551b-436d-ae6d-74c768c9623c" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 43" src="https://github.com/user-attachments/assets/8816d854-d13d-42de-bd97-fa75e0c145f9" />
+- <img width="738" height="1600" alt="WhatsApp Image 2026-09-21 at 20 10 47" src="https://github.com/user-attachments/assets/db2619de-2085-46a3-82b3-156778567661" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 The API is containerised ([Dockerfile](Dockerfile)) and deployed on Render. User pantry, settings, shopping lists, and profiles persist in **Firebase Realtime Database**. Google identity is handled through **Firebase Authentication**. Camera photos are identified with **LogMeal** on the server so the recognition key is not shipped in the APK (Firebase, 2026; LogMeal API, 2026).
 
 ## Features delivered
