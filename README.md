@@ -10,7 +10,8 @@ The custom ASP.NET API does the heavy lifting. TheMealDB is only the recipe cata
 
 Thami will add an unlisted YouTube link here after the physical-device recording:
 
-> **Video:** _pending — Nomathamsanqa Tame_
+## Live Deployment & Demonstration Videos
+**Hosted API Base URL:** 'https://pantry-api-8x99.onrender.com/'
 
 Follow Thami's numbered checklist under [Work still to do](#nomathamsanqa-tame-nomathamsanqatame--hosted-api-demo-video-readme-media). Scan and shopping lists are already on `main` and can be filmed.
 
