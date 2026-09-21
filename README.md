@@ -18,8 +18,8 @@ Pantry is an Android recipe application that starts from **what is already in th
 
 | Recording | Link |
 | --- | --- |
-| Mobile application demonstration | https://youtu.be/74z5YRa-JMU |
-| Application walkthrough | https://youtu.be/XWsTvCrPVqk |
+| Part 2 mobile application demonstration | https://youtu.be/74z5YRa-JMU |
+| Part 2 API, Swagger and code walkthrough | https://youtu.be/XWsTvCrPVqk |
 
 ## Hosted API (for marking)
 
