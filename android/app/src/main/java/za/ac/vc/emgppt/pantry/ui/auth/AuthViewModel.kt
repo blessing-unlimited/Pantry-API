@@ -18,8 +18,9 @@ import za.ac.vc.emgppt.pantry.data.api.SsoRequest
 data class AuthUiState(
     val loading: Boolean = false,
     val signedIn: Boolean = false,
+    val isNewUser: Boolean = false,
     val error: String? = null,
-    val displayName: String? = null
+    val displayName: String? = null,
 )
 
 /**
@@ -47,9 +48,10 @@ class AuthViewModel : ViewModel() {
                 if (me.success && me.data != null) {
                     _state.value = AuthUiState(
                         signedIn = true,
+                        isNewUser = !me.data.onboardingCompleted,
                         displayName = me.data.displayName ?: ServiceLocator.session.displayName
                     )
-                    Log.i("Pantry", "Restored session for ${me.data.userId}")
+                    Log.i("Pantry", "Restored session for ${me.data.userId}, onboarding=${!me.data.onboardingCompleted}")
                 } else {
                     ServiceLocator.session.clear()
                 }
@@ -113,7 +115,11 @@ class AuthViewModel : ViewModel() {
             ServiceLocator.session.displayName = response.data.displayName
             ServiceLocator.session.email = response.data.email
             Log.i("Pantry", "SSO success newUser=${response.data.isNewUser} id=${response.data.userId}")
-            _state.value = AuthUiState(signedIn = true, displayName = response.data.displayName)
+            _state.value = AuthUiState(
+                signedIn = true,
+                isNewUser = response.data.isNewUser,
+                displayName = response.data.displayName
+            )
         } catch (ex: Exception) {
             Log.e("Pantry", "SSO API call failed", ex)
             _state.value = _state.value.copy(loading = false, error = "Cannot reach the Pantry API. Is it running on localhost:5080?")
