@@ -26,7 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import za.ac.vc.emgppt.pantry.R
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import za.ac.vc.emgppt.pantry.BuildConfig
@@ -49,7 +51,7 @@ fun SignInScreen(
         viewModel.completeGoogleSignIn(activity, result.data)
     }
 
-    LaunchedEffect(state.signedIn) {
+    LaunchedEffect(state.signedIn, state.locked, state.offerBiometric) {
         if (state.signedIn) onSignedIn()
     }
 
@@ -65,7 +67,7 @@ fun SignInScreen(
             Spacer(Modifier.height(12.dp))
             Text("PANTRY", style = MaterialTheme.typography.headlineLarge, color = Ivory)
             Text(
-                "Cook what's already yours",
+                stringResource(R.string.sign_in_tagline),
                 color = Ivory,
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -78,7 +80,7 @@ fun SignInScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Sign in to match recipes to your kitchen.",
+                stringResource(R.string.sign_in_body),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
@@ -95,7 +97,7 @@ fun SignInScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Terracotta),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Continue with Google", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.sign_in_google), style = MaterialTheme.typography.labelLarge)
                 }
                 if (BuildConfig.ALLOW_DEV_SSO) {
                     Spacer(Modifier.height(12.dp))
@@ -104,7 +106,7 @@ fun SignInScreen(
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Continue (local demo SSO)", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.sign_in_dev), style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }

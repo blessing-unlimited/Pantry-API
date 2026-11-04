@@ -36,8 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import za.ac.vc.emgppt.pantry.R
 import za.ac.vc.emgppt.pantry.ui.main.MainUiState
 import za.ac.vc.emgppt.pantry.ui.main.MainViewModel
 
@@ -61,15 +63,15 @@ fun PantryScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Your pantry", style = MaterialTheme.typography.headlineSmall)
-        Text("Add an ingredient you already have.", style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(R.string.pantry_title), style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.pantry_hint), style = MaterialTheme.typography.bodyLarge)
         OutlinedTextField(
             value = name,
             onValueChange = {
                 name = it
                 if (it.length >= 2) viewModel.searchIngredients(it)
             },
-            label = { Text("Ingredient") },
+            label = { Text(stringResource(R.string.pantry_ingredient)) },
             modifier = Modifier.fillMaxWidth(),
             isError = name.isBlank() && state.message != null
         )
@@ -84,14 +86,14 @@ fun PantryScreen(
             OutlinedTextField(
                 value = quantity,
                 onValueChange = { quantity = it },
-                label = { Text("Qty") },
+                label = { Text(stringResource(R.string.pantry_qty)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
                 value = unit,
                 onValueChange = { unit = it },
-                label = { Text("Unit") },
+                label = { Text(stringResource(R.string.pantry_unit)) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -104,12 +106,12 @@ fun PantryScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
-        ) { Text("Save to pantry", style = MaterialTheme.typography.labelLarge) }
+        ) { Text(stringResource(R.string.pantry_save), style = MaterialTheme.typography.labelLarge) }
         OutlinedButton(onClick = onScanClick, modifier = Modifier.fillMaxWidth()) {
-            Text("Scan with camera")
+            Text(stringResource(R.string.pantry_scan))
         }
         OutlinedButton(onClick = onListsClick, modifier = Modifier.fillMaxWidth()) {
-            Text("Shopping lists")
+            Text(stringResource(R.string.pantry_lists))
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             items(state.pantry, key = { it.id }) { item ->
@@ -136,7 +138,7 @@ fun PantryScreen(
                                 if (qty.isNotBlank()) Text(qty, style = MaterialTheme.typography.bodySmall)
                             }
                         }
-                        TextButton(onClick = { viewModel.deletePantryItem(item.id) }) { Text("Remove") }
+                        TextButton(onClick = { viewModel.deletePantryItem(item.id) }) { Text(stringResource(R.string.pantry_remove)) }
                     }
                 }
             }

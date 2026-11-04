@@ -41,7 +41,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import za.ac.vc.emgppt.pantry.R
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -88,6 +90,7 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
     var customName by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
     var unit by remember { mutableStateOf("") }
+    var lastImage by remember { mutableStateOf<ByteArray?>(null) }
 
     fun identify(part: MultipartBody.Part) {
         scope.launch {
@@ -124,6 +127,7 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
             error = "Could not read the selected image."
             return@rememberLauncherForActivityResult
         }
+        lastImage = bytes
         val body = bytes.toRequestBody("image/jpeg".toMediaType())
         identify(MultipartBody.Part.createFormData("image", "gallery.jpg", body))
     }
@@ -136,9 +140,9 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Scan ingredients", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.scan_title), style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Photograph food and confirm the name before it is added to your pantry. Recognition runs on the custom API (LogMeal), not on the phone.",
+            stringResource(R.string.scan_body),
             style = MaterialTheme.typography.bodyLarge
         )
 
@@ -183,6 +187,7 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
                         ContextCompat.getMainExecutor(context),
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                                lastImage = file.readBytes()
                                 val body = file.asRequestBody("image/jpeg".toMediaType())
                                 identify(MultipartBody.Part.createFormData("image", file.name, body))
                             }
@@ -195,29 +200,29 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
-            ) { Text("Capture photo") }
+            ) { Text(stringResource(R.string.scan_capture)) }
         } else {
             OutlinedButton(
                 onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Allow camera") }
+            ) { Text(stringResource(R.string.scan_allow_camera)) }
         }
 
         OutlinedButton(
             onClick = { galleryLauncher.launch("image/*") },
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Choose from gallery") }
+        ) { Text(stringResource(R.string.scan_gallery)) }
 
         if (loading) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CircularProgressIndicator(color = Terracotta)
-                Text("Identifying food…")
+                Text(stringResource(R.string.scan_identifying))
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         if (foods.isNotEmpty()) {
-            Text("What did we find?", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.scan_found), style = MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 foods.forEach { name ->
                     FilterChip(
@@ -232,20 +237,20 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
         OutlinedTextField(
             value = customName,
             onValueChange = { customName = it },
-            label = { Text("Or type a custom name") },
+            label = { Text(stringResource(R.string.scan_custom)) },
             modifier = Modifier.fillMaxWidth()
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = quantity,
                 onValueChange = { quantity = it },
-                label = { Text("Qty") },
+                label = { Text(stringResource(R.string.pantry_qty)) },
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
                 value = unit,
                 onValueChange = { unit = it },
-                label = { Text("Unit") },
+                label = { Text(stringResource(R.string.pantry_unit)) },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -253,7 +258,7 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
             onClick = {
                 val name = customName.trim().ifBlank { selected.trim() }
                 if (name.isEmpty()) {
-                    error = "Select or type an ingredient name."
+                    error = context.getString(R.string.scan_name_required)
                     return@Button
                 }
                 scope.launch {
@@ -276,7 +281,7 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
                                 return@launch
                             }
                         }
-                        viewModel.addPantryItem(name, quantity, unit)
+                        viewModel.addPantryItem(name, quantity, unit, lastImage)
                         onSaved()
                     } catch (ex: Exception) {
                         error = ex.message
@@ -288,6 +293,6 @@ fun ScanScreen(viewModel: MainViewModel, onSaved: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             enabled = !loading,
             colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
-        ) { Text("Save to pantry") }
+        ) { Text(stringResource(R.string.pantry_save)) }
     }
 }

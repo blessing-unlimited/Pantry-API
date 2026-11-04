@@ -20,7 +20,9 @@ captures/
 
 # Android / Java
 local.properties
+keystore.properties
 *.apk
+!releases/pantry-1.0.0-release.apk
 *.aab
 *.ap_
 *.dex

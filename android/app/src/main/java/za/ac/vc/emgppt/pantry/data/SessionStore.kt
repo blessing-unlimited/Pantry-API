@@ -29,6 +29,20 @@ class SessionStore(context: Context) {
             prefs.edit().putString(KEY_EMAIL, value).apply()
         }
 
+    var userId: String?
+        get() = prefs.getString(KEY_USER, null)
+        set(value) {
+            prefs.edit().putString(KEY_USER, value).apply()
+        }
+
+    /** True after the user enrols fingerprint or face unlock (Android Developers, 2025). */
+    var biometricEnabled: Boolean
+        get() = prefs.getBoolean(KEY_BIOMETRIC, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_BIOMETRIC, value).apply()
+            Log.i("Pantry", "Biometric enrolment set to $value")
+        }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
@@ -37,5 +51,7 @@ class SessionStore(context: Context) {
         const val KEY_TOKEN = "token"
         const val KEY_NAME = "name"
         const val KEY_EMAIL = "email"
+        const val KEY_USER = "userId"
+        const val KEY_BIOMETRIC = "biometricEnabled"
     }
 }

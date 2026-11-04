@@ -16,4 +16,13 @@ public sealed class FirebaseOptions
 
     /// <summary>Optional auth token when security rules are not in open test mode.</summary>
     public string AuthToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Service-account JSON used only to send Cloud Messaging. Supply it as an
+    /// environment variable. Never commit the value (Firebase, 2026).
+    /// </summary>
+    public string ServiceAccountJson { get; set; } = string.Empty;
+
+    /// <summary>Optional path to a service-account file outside the repository.</summary>
+    public string ServiceAccountPath { get; set; } = string.Empty;
 }

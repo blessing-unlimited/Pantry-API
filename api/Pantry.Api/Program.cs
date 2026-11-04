@@ -77,6 +77,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
+builder.Services.AddHttpClient<IPushNotificationSender, FcmPushNotificationSender>();
 builder.Services.AddHttpClient<ILogMealService, LogMealService>(client =>
 {
     client.BaseAddress = new Uri("https://api.logmeal.com/");

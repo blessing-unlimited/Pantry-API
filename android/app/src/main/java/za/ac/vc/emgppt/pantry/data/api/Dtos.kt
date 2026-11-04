@@ -24,7 +24,12 @@ data class UserProfile(
     val email: String?,
     val displayName: String?,
     val createdAt: String?,
-    val onboardingCompleted: Boolean
+    val onboardingCompleted: Boolean,
+    val fcmToken: String? = null
+)
+
+data class DeviceTokenRequest(
+    val token: String
 )
 
 data class UserSettings(
@@ -42,13 +47,15 @@ data class PantryItemDto(
     val quantity: Double?,
     val unit: String?,
     val createdAt: String?,
-    val updatedAt: String?
+    val updatedAt: String?,
+    val imageUrl: String? = null
 )
 
 data class CreatePantryItemRequest(
     val ingredientName: String,
     val quantity: Double? = null,
-    val unit: String? = null
+    val unit: String? = null,
+    val imageUrl: String? = null
 )
 
 data class RecipeIngredientDto(

@@ -9,11 +9,16 @@ namespace Pantry.Api.Controllers;
 public sealed class PantryItemsController : ControllerBase
 {
     private readonly IUserStore _store;
+    private readonly IPushNotificationSender _push;
     private readonly ILogger<PantryItemsController> _logger;
 
-    public PantryItemsController(IUserStore store, ILogger<PantryItemsController> logger)
+    public PantryItemsController(
+        IUserStore store,
+        IPushNotificationSender push,
+        ILogger<PantryItemsController> logger)
     {
         _store = store;
+        _push = push;
         _logger = logger;
     }
 
@@ -59,11 +64,13 @@ public sealed class PantryItemsController : ControllerBase
             IngredientName = request.IngredientName.Trim(),
             Quantity = request.Quantity,
             Unit = string.IsNullOrWhiteSpace(request.Unit) ? null : request.Unit.Trim(),
+            ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
             CreatedAt = now,
             UpdatedAt = now
         }, cancellationToken);
 
         _logger.LogInformation("User {UserId} added pantry item {Name}", userId, created.IngredientName);
+        await TryNotifyAddedAsync(userId, created.IngredientName, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, ApiEnvelope<PantryItem>.Ok(created));
     }
 
@@ -115,6 +122,10 @@ public sealed class PantryItemsController : ControllerBase
             : request.IngredientName.Trim();
         existing.Quantity = request.Quantity ?? existing.Quantity;
         existing.Unit = request.Unit ?? existing.Unit;
+        if (request.ImageUrl is not null)
+        {
+            existing.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim();
+        }
         existing.UpdatedAt = DateTimeOffset.UtcNow;
 
         var updated = await _store.UpdatePantryItemAsync(userId, id, existing, cancellationToken);
@@ -139,5 +150,44 @@ public sealed class PantryItemsController : ControllerBase
 
         _logger.LogInformation("User {UserId} deleted pantry item {Id}", userId, id);
         return NoContent();
+    }
+
+    /// <summary>
+    /// A pantry write can raise a Cloud Messaging alert when the user opted in
+    /// and a device token is stored (Firebase, 2026). Failure to send does not
+    /// fail the write.
+    /// </summary>
+    private async Task TryNotifyAddedAsync(string userId, string ingredientName, CancellationToken cancellationToken)
+    {
+        if (!_push.IsConfigured)
+        {
+            return;
+        }
+
+        try
+        {
+            var settings = await _store.GetSettingsAsync(userId, cancellationToken);
+            if (!settings.NotificationsEnabled)
+            {
+                return;
+            }
+
+            var profile = await _store.GetProfileAsync(userId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(profile?.FcmToken))
+            {
+                _logger.LogInformation("Push skipped for {UserId}: no device token", userId);
+                return;
+            }
+
+            await _push.SendAsync(
+                profile.FcmToken,
+                "Pantry",
+                $"{ingredientName} was added to your pantry.",
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Push notification was not sent for {UserId}", userId);
+        }
     }
 }

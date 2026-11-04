@@ -63,7 +63,8 @@ public sealed class UsersController : ControllerBase
             return BadRequest(ApiEnvelope<UserSettings>.Fail("maxMissingIngredients must be between 0 and 20."));
         }
 
-        if (string.IsNullOrWhiteSpace(request.LanguageCode))
+        request.LanguageCode = (request.LanguageCode ?? string.Empty).Trim().ToLowerInvariant();
+        if (request.LanguageCode is not ("en" or "zu" or "af"))
         {
             request.LanguageCode = "en";
         }
@@ -88,4 +89,36 @@ public sealed class UsersController : ControllerBase
         _logger.LogInformation("Updated settings for {UserId}", userId);
         return Ok(ApiEnvelope<UserSettings>.Ok(saved));
     }
+
+    /// <summary>Stores the device token used by Firebase Cloud Messaging (Firebase, 2026).</summary>
+    [HttpPut("me/device")]
+    [ProducesResponseType(typeof(ApiEnvelope<UserProfile>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiEnvelope<UserProfile>>> RegisterDevice(
+        [FromBody] DeviceTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized(ApiEnvelope<UserProfile>.Fail("Authentication is required."));
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Token) || request.Token.Length > 4096)
+        {
+            return BadRequest(ApiEnvelope<UserProfile>.Fail("A device token is required."));
+        }
+
+        var profile = await _store.GetProfileAsync(userId, cancellationToken)
+                      ?? new UserProfile { UserId = userId, CreatedAt = DateTimeOffset.UtcNow };
+        profile.UserId = userId;
+        profile.FcmToken = request.Token.Trim();
+        await _store.SaveProfileAsync(profile, cancellationToken);
+        _logger.LogInformation("Registered a device token for {UserId}", userId);
+        return Ok(ApiEnvelope<UserProfile>.Ok(profile));
+    }
+}
+
+public sealed class DeviceTokenRequest
+{
+    public string Token { get; set; } = string.Empty;
 }

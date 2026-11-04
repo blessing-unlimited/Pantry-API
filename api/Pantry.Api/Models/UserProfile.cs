@@ -11,4 +11,7 @@ public sealed class UserProfile
     public DateTimeOffset CreatedAt { get; set; }
 
     public bool OnboardingCompleted { get; set; }
+
+    /// <summary>Firebase Cloud Messaging device token (Firebase, 2026).</summary>
+    public string? FcmToken { get; set; }
 }

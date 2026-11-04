@@ -1,11 +1,14 @@
 package za.ac.vc.emgppt.pantry
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -27,9 +30,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -37,7 +44,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import za.ac.vc.emgppt.pantry.R
 import za.ac.vc.emgppt.pantry.ui.auth.AuthViewModel
+import za.ac.vc.emgppt.pantry.ui.auth.BiometricLockScreen
+import za.ac.vc.emgppt.pantry.ui.auth.BiometricOfferScreen
 import za.ac.vc.emgppt.pantry.ui.auth.OnboardingScreen
 import za.ac.vc.emgppt.pantry.ui.auth.SignInScreen
 import za.ac.vc.emgppt.pantry.ui.group.CookModeScreen
@@ -55,8 +65,13 @@ import za.ac.vc.emgppt.pantry.ui.theme.PantryTheme
 import za.ac.vc.emgppt.pantry.ui.theme.SplashScreen
 import za.ac.vc.emgppt.pantry.ui.theme.Terracotta
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val authViewModel: AuthViewModel by viewModels()
+    private val notificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        Log.i("Pantry", "Notification permission granted=$granted")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +79,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PantryTheme {
-                PantryRoot(authViewModel)
+                PantryRoot(authViewModel) {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
             }
         }
     }
@@ -81,20 +100,25 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun PantryRoot(authViewModel: AuthViewModel) {
-    val authState by authViewModel.state.collectAsState()
+private fun PantryRoot(authViewModel: AuthViewModel, onEnteredApp: () -> Unit) {
     val navController = rememberNavController()
-    val start = if (authState.signedIn) {
-        if (authState.isNewUser) "onboarding" else "main"
-    } else "splash"
 
-    NavHost(navController = navController, startDestination = start) {
+    fun nextAfterAuth(): String {
+        val state = authViewModel.state.value
+        return when {
+            state.locked -> "biometric"
+            state.offerBiometric -> "biometricOffer"
+            state.isNewUser -> "onboarding"
+            else -> "main"
+        }
+    }
+
+    NavHost(navController = navController, startDestination = "splash") {
         composable("splash") {
-            LaunchedEffect(authState.signedIn) {
-                kotlinx.coroutines.delay(1500)
-                val target = if (authState.signedIn) {
-                    if (authState.isNewUser) "onboarding" else "main"
-                } else "signIn"
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(900)
+                val state = authViewModel.state.value
+                val target = if (!state.signedIn) "signIn" else nextAfterAuth()
                 navController.navigate(target) {
                     popUpTo("splash") { inclusive = true }
                 }
@@ -103,9 +127,31 @@ private fun PantryRoot(authViewModel: AuthViewModel) {
         }
         composable("signIn") {
             SignInScreen(authViewModel) {
-                val target = if (authViewModel.state.value.isNewUser) "onboarding" else "main"
-                navController.navigate(target) { popUpTo("signIn") { inclusive = true } }
+                navController.navigate(nextAfterAuth()) { popUpTo("signIn") { inclusive = true } }
             }
+        }
+        composable("biometric") {
+            BiometricLockScreen {
+                authViewModel.unlock()
+                navController.navigate("main") { popUpTo("biometric") { inclusive = true } }
+                onEnteredApp()
+            }
+        }
+        composable("biometricOffer") {
+            BiometricOfferScreen(
+                onEnabled = {
+                    authViewModel.acceptBiometric()
+                    val target = if (authViewModel.state.value.isNewUser) "onboarding" else "main"
+                    navController.navigate(target) { popUpTo("biometricOffer") { inclusive = true } }
+                    if (target == "main") onEnteredApp()
+                },
+                onSkip = {
+                    authViewModel.skipBiometric()
+                    val target = if (authViewModel.state.value.isNewUser) "onboarding" else "main"
+                    navController.navigate(target) { popUpTo("biometricOffer") { inclusive = true } }
+                    if (target == "main") onEnteredApp()
+                }
+            )
         }
         composable("onboarding") {
             val mainViewModel: MainViewModel = viewModel()
@@ -114,6 +160,7 @@ private fun PantryRoot(authViewModel: AuthViewModel) {
             }
         }
         composable("main") {
+            LaunchedEffect(Unit) { onEnteredApp() }
             MainTabs(
                 authViewModel = authViewModel,
                 onSignedOut = {
@@ -133,10 +180,10 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
     val navController = rememberNavController()
     val snackbar = remember { SnackbarHostState() }
     val tabs = listOf(
-        Tab("home", "Home", Icons.Outlined.Home),
-        Tab("pantry", "Pantry", Icons.Outlined.Kitchen),
-        Tab("recipes", "Recipes", Icons.Outlined.Restaurant),
-        Tab("profile", "Profile", Icons.Outlined.Person)
+        Tab("home", stringResource(R.string.tab_home), Icons.Outlined.Home),
+        Tab("pantry", stringResource(R.string.tab_pantry), Icons.Outlined.Kitchen),
+        Tab("recipes", stringResource(R.string.tab_recipes), Icons.Outlined.Restaurant),
+        Tab("profile", stringResource(R.string.tab_profile), Icons.Outlined.Person)
     )
     val backStack by navController.currentBackStackEntryAsState()
     val current = backStack?.destination?.route
@@ -153,6 +200,21 @@ private fun MainTabs(authViewModel: AuthViewModel, onSignedOut: () -> Unit) {
     Scaffold(
         containerColor = Cream,
         snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
+            if (state.offline || state.pendingSyncCount > 0) {
+                Text(
+                    text = if (state.offline) {
+                        stringResource(R.string.offline_banner)
+                    } else {
+                        stringResource(R.string.pending_sync, state.pendingSyncCount)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = Terracotta
+                )
+            }
+        },
         bottomBar = {
             if (current in tabs.map { it.route }) {
                 NavigationBar(containerColor = Ivory) {

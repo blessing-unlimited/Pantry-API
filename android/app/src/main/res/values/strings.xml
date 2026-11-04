@@ -2,4 +2,93 @@
 <resources>
     <string name="app_name">Pantry</string>
     <string name="default_web_client_id">242240371698-di7p5k3qk4krc35hqds9baqbve2757jc.apps.googleusercontent.com</string>
+
+    <string name="tab_home">Home</string>
+    <string name="tab_pantry">Pantry</string>
+    <string name="tab_recipes">Recipes</string>
+    <string name="tab_profile">Profile</string>
+
+    <string name="sign_in_tagline">Cook what\'s already yours</string>
+    <string name="sign_in_body">Sign in to match recipes to your kitchen.</string>
+    <string name="sign_in_google">Continue with Google</string>
+    <string name="sign_in_dev">Continue (local demo SSO)</string>
+    <string name="google_token_missing">Google did not return an ID token.</string>
+    <string name="google_sign_in_failed">Google sign-in failed.</string>
+    <string name="cannot_reach_api">Cannot reach the Pantry API. Check the connection and try again.</string>
+
+    <string name="biometric_title">Unlock Pantry</string>
+    <string name="biometric_subtitle">Use your fingerprint or face</string>
+    <string name="biometric_lock_body">Your session is saved. Confirm it is you before the pantry opens.</string>
+    <string name="biometric_unlock">Unlock</string>
+    <string name="biometric_enable_title">Enable biometric unlock</string>
+    <string name="biometric_enable_body">Next time you open Pantry, you can use a fingerprint or face instead of signing in again. The biometric sample stays on the device.</string>
+    <string name="biometric_enable">Use fingerprint or face</string>
+    <string name="biometric_not_now">Not now</string>
+    <string name="biometric_cancel">Cancel</string>
+    <string name="biometric_failed">Biometric check was cancelled. You can try again.</string>
+    <string name="biometric_unavailable">This device has no fingerprint or face unlock set up.</string>
+    <string name="biometric_setting">Unlock with biometrics</string>
+
+    <string name="offline_banner">You are offline. Changes will sync when the network returns.</string>
+    <string name="pending_sync">Waiting to sync: %1$d</string>
+    <string name="saved_offline">Saved on this phone. It will sync when you are back online.</string>
+    <string name="settings_saved">Settings saved.</string>
+    <string name="ingredient_required">Ingredient name is required.</string>
+    <string name="quantity_number">Quantity must be a number.</string>
+    <string name="quantity_negative">Quantity cannot be negative.</string>
+    <string name="max_missing_invalid">Max missing ingredients must be between 0 and 20.</string>
+
+    <string name="pantry_title">Your pantry</string>
+    <string name="pantry_hint">Add an ingredient you already have.</string>
+    <string name="pantry_ingredient">Ingredient</string>
+    <string name="pantry_qty">Qty</string>
+    <string name="pantry_unit">Unit</string>
+    <string name="pantry_save">Save to pantry</string>
+    <string name="pantry_scan">Scan with camera</string>
+    <string name="pantry_lists">Shopping lists</string>
+    <string name="pantry_remove">Remove</string>
+
+    <string name="scan_title">Scan ingredients</string>
+    <string name="scan_body">Photograph food and confirm the name before it is added to your pantry. The photo is stored as a blob and recognition runs on the custom API.</string>
+    <string name="scan_capture">Capture photo</string>
+    <string name="scan_allow_camera">Allow camera</string>
+    <string name="scan_gallery">Choose from gallery</string>
+    <string name="scan_identifying">Identifying food…</string>
+    <string name="scan_found">What did we find?</string>
+    <string name="scan_custom">Or type a custom name</string>
+    <string name="scan_name_required">Select or type an ingredient name.</string>
+
+    <string name="settings_home_chef">Home chef</string>
+    <string name="settings_no_email">No email linked</string>
+    <string name="settings_achievements">Your achievements</string>
+    <string name="settings_dietary">Dietary preferences</string>
+    <string name="settings_cuisine">Cuisine bias</string>
+    <string name="settings_allergens">Allergens (comma separated)</string>
+    <string name="settings_max_missing">Max missing ingredients</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_save">Save settings</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_test_notification">Send test notification</string>
+    <string name="lang_english">English</string>
+    <string name="lang_zulu">isiZulu</string>
+    <string name="lang_afrikaans">Afrikaans</string>
+    <string name="test_notification_sent">Test notification sent.</string>
+    <string name="test_notification_unavailable">Push is not available yet. The server needs a Firebase service account, and this phone needs a registered token.</string>
+    <string name="shopping_needs_network">A shopping list can be generated only while you are online.</string>
+    <string name="shopping_list_saved">Shopping list saved (%1$d items).</string>
+    <string name="shopping_list_failed">Could not generate a shopping list.</string>
+    <string name="notifications_channel">Pantry alerts</string>
+    <string name="notifications_channel_desc">Pantry updates and reminders</string>
+
+    <string name="diet_vegetarian">Vegetarian</string>
+    <string name="diet_vegan">Vegan</string>
+    <string name="diet_halal">Halal</string>
+    <string name="diet_gluten_free">Gluten-free</string>
+    <string name="diet_dairy_free">Dairy-free</string>
+    <string name="diet_none">No restriction</string>
+    <string name="cuisine_italian">Italian</string>
+    <string name="cuisine_asian">Asian</string>
+    <string name="cuisine_mediterranean">Mediterranean</string>
+    <string name="cuisine_comfort">Comfort food</string>
 </resources>

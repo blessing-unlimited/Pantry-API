@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -28,6 +29,12 @@ interface PantryApi {
 
     @PATCH("api/v1/users/me/settings")
     suspend fun updateSettings(@Body settings: UserSettings): ApiEnvelope<UserSettings>
+
+    @PUT("api/v1/users/me/device")
+    suspend fun registerDevice(@Body request: DeviceTokenRequest): ApiEnvelope<UserProfile>
+
+    @POST("api/v1/notifications/test")
+    suspend fun sendTestNotification(): ApiEnvelope<String>
 
     @GET("api/v1/pantry-items")
     suspend fun listPantry(): ApiEnvelope<List<PantryItemDto>>

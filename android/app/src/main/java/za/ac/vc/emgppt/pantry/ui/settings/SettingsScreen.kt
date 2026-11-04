@@ -48,14 +48,36 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+import za.ac.vc.emgppt.pantry.R
 import za.ac.vc.emgppt.pantry.data.ServiceLocator
+import za.ac.vc.emgppt.pantry.security.BiometricGate
 import za.ac.vc.emgppt.pantry.data.api.UserSettings
 import za.ac.vc.emgppt.pantry.ui.main.MainUiState
 import za.ac.vc.emgppt.pantry.ui.main.MainViewModel
 
-private val DietOptions = listOf("vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "no restriction")
-private val CuisineOptions = listOf("Italian", "Asian", "Mediterranean", "Comfort Food")
+private val DietOptions = listOf(
+    "vegetarian" to R.string.diet_vegetarian,
+    "vegan" to R.string.diet_vegan,
+    "halal" to R.string.diet_halal,
+    "gluten-free" to R.string.diet_gluten_free,
+    "dairy-free" to R.string.diet_dairy_free,
+    "no restriction" to R.string.diet_none
+)
+private val CuisineOptions = listOf(
+    "Italian" to R.string.cuisine_italian,
+    "Asian" to R.string.cuisine_asian,
+    "Mediterranean" to R.string.cuisine_mediterranean,
+    "Comfort Food" to R.string.cuisine_comfort
+)
+private val LanguageOptions = listOf(
+    "en" to R.string.lang_english,
+    "zu" to R.string.lang_zulu,
+    "af" to R.string.lang_afrikaans
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -65,11 +87,14 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     contentPadding: PaddingValues
 ) {
+    val activity = LocalContext.current as FragmentActivity
     var diets by remember(state.settings) { mutableStateOf(state.settings.dietaryPreferences.toSet()) }
     var cuisines by remember(state.settings) { mutableStateOf(state.settings.cuisinePreferences.toSet()) }
     var allergens by remember(state.settings) { mutableStateOf(state.settings.allergens.joinToString(", ")) }
     var notifications by remember(state.settings) { mutableStateOf(state.settings.notificationsEnabled) }
     var maxMissing by remember(state.settings) { mutableStateOf(state.settings.maxMissingIngredients.toString()) }
+    var language by remember(state.settings) { mutableStateOf(state.settings.languageCode.ifBlank { "en" }) }
+    var biometricOn by remember { mutableStateOf(ServiceLocator.session.biometricEnabled) }
 
     Column(
         modifier = Modifier
@@ -98,7 +123,7 @@ fun SettingsScreen(
             }
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(displayName, style = MaterialTheme.typography.titleLarge)
-                Text("Home Chef • Level 4", color = Terracotta, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.settings_home_chef), color = Terracotta, style = MaterialTheme.typography.labelMedium)
             }
         }
 
@@ -117,9 +142,9 @@ fun SettingsScreen(
             )
         }
 
-        Text(ServiceLocator.session.email ?: "No email linked", style = MaterialTheme.typography.bodySmall)
+        Text(ServiceLocator.session.email ?: stringResource(R.string.settings_no_email), style = MaterialTheme.typography.bodySmall)
 
-        Text("Your Achievements", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.settings_achievements), style = MaterialTheme.typography.titleMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -129,15 +154,29 @@ fun SettingsScreen(
             Badge("Waste Fighter ♻️", Color(0xFF2E7D32))
         }
 
-        Text("Dietary preferences", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DietOptions.forEach { option ->
+            LanguageOptions.forEach { (code, label) ->
+                FilterChip(
+                    selected = language == code,
+                    onClick = { language = code },
+                    label = { Text(stringResource(label)) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Terracotta,
+                        selectedLabelColor = Ivory
+                    )
+                )
+            }
+        }
+        Text(stringResource(R.string.settings_dietary), style = MaterialTheme.typography.titleMedium)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DietOptions.forEach { (option, label) ->
                 FilterChip(
                     selected = diets.contains(option),
                     onClick = {
                         diets = if (diets.contains(option)) diets - option else diets + option
                     },
-                    label = { Text(option, style = MaterialTheme.typography.labelLarge) },
+                    label = { Text(stringResource(label), style = MaterialTheme.typography.labelLarge) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Basil,
                         selectedLabelColor = Ivory
@@ -145,15 +184,15 @@ fun SettingsScreen(
                 )
             }
         }
-        Text("Cuisine bias", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.settings_cuisine), style = MaterialTheme.typography.titleMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CuisineOptions.forEach { option ->
+            CuisineOptions.forEach { (option, label) ->
                 FilterChip(
                     selected = cuisines.contains(option),
                     onClick = {
                         cuisines = if (cuisines.contains(option)) cuisines - option else cuisines + option
                     },
-                    label = { Text(option, style = MaterialTheme.typography.labelLarge) },
+                    label = { Text(stringResource(label), style = MaterialTheme.typography.labelLarge) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Basil,
                         selectedLabelColor = Ivory
@@ -164,26 +203,50 @@ fun SettingsScreen(
         OutlinedTextField(
             value = allergens,
             onValueChange = { allergens = it },
-            label = { Text("Allergens (comma separated)") },
+            label = { Text(stringResource(R.string.settings_allergens)) },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = maxMissing,
             onValueChange = { maxMissing = it },
-            label = { Text("Max missing ingredients") },
+            label = { Text(stringResource(R.string.settings_max_missing)) },
             modifier = Modifier.fillMaxWidth()
         )
-        RowWithSwitch("Notifications (stored now, used in final POE)", notifications) { notifications = it }
+        RowWithSwitch(stringResource(R.string.settings_notifications), notifications) { notifications = it }
+        RowWithSwitch(stringResource(R.string.biometric_setting), biometricOn) { enabled ->
+            if (!enabled) {
+                ServiceLocator.session.biometricEnabled = false
+                biometricOn = false
+                return@RowWithSwitch
+            }
+            if (!BiometricGate.canAuthenticate(activity)) {
+                viewModel.showMessage(activity.getString(R.string.biometric_unavailable))
+                return@RowWithSwitch
+            }
+            BiometricGate.authenticate(
+                activity,
+                activity.getString(R.string.biometric_enable_title),
+                activity.getString(R.string.biometric_subtitle)
+            ) { ok, message ->
+                if (ok) {
+                    ServiceLocator.session.biometricEnabled = true
+                    biometricOn = true
+                } else {
+                    biometricOn = false
+                    viewModel.showMessage(message ?: activity.getString(R.string.biometric_failed))
+                }
+            }
+        }
         Button(
             onClick = {
                 val max = maxMissing.toIntOrNull()
-                if (max == null || max !in 0..20) {
-                    viewModel.saveSettings(state.settings)
+                if (max == null) {
+                    viewModel.showMessage(activity.getString(R.string.max_missing_invalid))
                     return@Button
                 }
                 viewModel.saveSettings(
                     UserSettings(
-                        languageCode = "en",
+                        languageCode = language,
                         dietaryPreferences = diets.toList(),
                         cuisinePreferences = cuisines.toList(),
                         allergens = allergens.split(",").map { it.trim() }.filter { it.isNotEmpty() },
@@ -194,9 +257,13 @@ fun SettingsScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Terracotta)
-        ) { Text("Save settings", style = MaterialTheme.typography.labelLarge) }
+        ) { Text(stringResource(R.string.settings_save), style = MaterialTheme.typography.labelLarge) }
+        OutlinedButton(
+            onClick = { viewModel.sendTestNotification() },
+            modifier = Modifier.fillMaxWidth()
+        ) { Text(stringResource(R.string.settings_test_notification)) }
 
-        Text("Your Achievements", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.settings_achievements), style = MaterialTheme.typography.titleMedium)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -206,7 +273,7 @@ fun SettingsScreen(
             Badge("Waste Fighter ♻️", Color(0xFF2E7D32))
         }
 
-        OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text("Sign out") }
+        OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.settings_sign_out)) }
     }
 }
 

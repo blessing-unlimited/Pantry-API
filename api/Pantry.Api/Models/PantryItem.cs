@@ -13,6 +13,9 @@ public sealed class PantryItem
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>Download URL for a scan photo stored in blob storage (Firebase, 2026).</summary>
+    public string? ImageUrl { get; set; }
 }
 
 public sealed class CreatePantryItemRequest
@@ -22,6 +25,8 @@ public sealed class CreatePantryItemRequest
     public decimal? Quantity { get; set; }
 
     public string? Unit { get; set; }
+
+    public string? ImageUrl { get; set; }
 }
 
 public sealed class UpdatePantryItemRequest
@@ -31,4 +36,6 @@ public sealed class UpdatePantryItemRequest
     public decimal? Quantity { get; set; }
 
     public string? Unit { get; set; }
+
+    public string? ImageUrl { get; set; }
 }

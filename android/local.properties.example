@@ -1,1 +1,5 @@
 sdk.dir=C:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk
+# Optional. Debug builds use the hosted API when this is omitted.
+# pantry.apiBaseUrl=http://10.0.2.2:5080/
+# Optional. Use this if the project folder denies Gradle from refreshing app/build.
+# pantry.buildDir=C:\\Users\\YOUR_USERNAME\\AppData\\Local\\pantry-gradle-build

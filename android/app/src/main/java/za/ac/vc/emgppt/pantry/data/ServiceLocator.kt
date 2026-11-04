@@ -4,6 +4,10 @@ import android.content.Context
 import android.util.Log
 import za.ac.vc.emgppt.pantry.BuildConfig
 import za.ac.vc.emgppt.pantry.data.api.PantryApi
+import za.ac.vc.emgppt.pantry.data.local.PantryDatabase
+import za.ac.vc.emgppt.pantry.data.sync.NetworkMonitor
+import za.ac.vc.emgppt.pantry.data.sync.PantryRepository
+import za.ac.vc.emgppt.pantry.messaging.PantryNotifications
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -24,8 +28,18 @@ object ServiceLocator {
     lateinit var api: PantryApi
         private set
 
+    lateinit var appContext: Context
+        private set
+
+    lateinit var network: NetworkMonitor
+        private set
+
+    lateinit var repository: PantryRepository
+        private set
+
     fun init(context: Context) {
-        session = SessionStore(context.applicationContext)
+        appContext = context.applicationContext
+        session = SessionStore(appContext)
         val authInterceptor = Interceptor { chain ->
             val token = session.token
             val builder = chain.request().newBuilder()
@@ -52,6 +66,12 @@ object ServiceLocator {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(PantryApi::class.java)
+
+        network = NetworkMonitor(appContext)
+        val database = PantryDatabase.create(appContext)
+        repository = PantryRepository(appContext, database.pantryDao(), api, session, network)
+        repository.start()
+        PantryNotifications.ensureChannel(appContext)
 
         Log.i(TAG, "Retrofit initialised against ${BuildConfig.API_BASE_URL}")
     }
