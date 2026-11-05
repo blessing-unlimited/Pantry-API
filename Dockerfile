@@ -3,8 +3,8 @@ FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
 
-RUN dotnet restore Pantry.slnx
-RUN dotnet publish Pantry.Api/Pantry.Api.csproj \
+RUN dotnet restore api/Pantry.slnx
+RUN dotnet publish api/Pantry.Api/Pantry.Api.csproj \
     --configuration Release \
     --output /app/publish \
     /p:UseAppHost=false
