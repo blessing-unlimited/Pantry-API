@@ -19,4 +19,4 @@ jobs:
           MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
         run: |
           git remote add destination "https://x-access-token:${MIRROR_TOKEN}@github.com/blessing-unlimited/Pantry-API.git"
-          git push destination HEAD:main
+          git push --force destination HEAD:main
