@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.78.0" />
     <PackageReference Include="Microsoft.OpenApi" Version="1.6.25" />
     <PackageReference Include="SkiaSharp" Version="4.152.0" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.0" />

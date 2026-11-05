@@ -16,6 +16,7 @@ builder.Services.Configure<AuthenticationOptions>(builder.Configuration.GetSecti
 builder.Services.AddHttpClient<IMealDbClient, MealDbClient>();
 builder.Services.AddHttpClient<ITokenIdentityService, TokenIdentityService>();
 builder.Services.AddHttpClient<FirebaseUserStore>();
+builder.Services.AddSingleton<FirebaseDatabaseTokenProvider>();
 builder.Services.AddSingleton<InMemoryUserStore>();
 builder.Services.AddScoped<IUserStore>(sp =>
 {

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Pantry.Api.Models;
 using Pantry.Api.Options;
+using System.Net.Http.Headers;
 
 namespace Pantry.Api.Services;
 
@@ -54,12 +55,14 @@ public sealed class FirebaseUserStore : IUserStore
     private readonly HttpClient _httpClient;
     private readonly FirebaseOptions _options;
     private readonly ILogger<FirebaseUserStore> _logger;
+    private readonly FirebaseDatabaseTokenProvider _databaseTokens;
 
-    public FirebaseUserStore(HttpClient httpClient, IOptions<FirebaseOptions> options, ILogger<FirebaseUserStore> logger)
+    public FirebaseUserStore(HttpClient httpClient, IOptions<FirebaseOptions> options, ILogger<FirebaseUserStore> logger, FirebaseDatabaseTokenProvider databaseTokens)
     {
         _httpClient = httpClient;
         _options = options.Value;
         _logger = logger;
+        _databaseTokens = databaseTokens;
 
         var baseUrl = (_options.BaseUrl ?? string.Empty).Trim();
         if (Uri.TryCreate(baseUrl.TrimEnd('/') + "/", UriKind.Absolute, out var uri))
@@ -123,10 +126,10 @@ public sealed class FirebaseUserStore : IUserStore
     public async Task<PantryItem> AddPantryItemAsync(string userId, PantryItem item, CancellationToken cancellationToken)
     {
         EnsureConfigured();
-        var response = await _httpClient.PostAsJsonAsync(
-            BuildPath($"users/{userId}/pantryItems.json"),
-            item,
-            JsonOptions,
+        var response = await SendAsync(
+            HttpMethod.Post,
+            $"users/{userId}/pantryItems.json",
+            JsonContent.Create(item, options: JsonOptions),
             cancellationToken);
         var body = await ReadBodyAsync(response, cancellationToken);
         var created = JsonSerializer.Deserialize<FirebaseNameResponse>(body, JsonOptions);
@@ -163,7 +166,11 @@ public sealed class FirebaseUserStore : IUserStore
         }
 
         EnsureConfigured();
-        var response = await _httpClient.DeleteAsync(BuildPath($"users/{userId}/pantryItems/{itemId}.json"), cancellationToken);
+        var response = await SendAsync(
+            HttpMethod.Delete,
+            $"users/{userId}/pantryItems/{itemId}.json",
+            null,
+            cancellationToken);
         await ReadBodyAsync(response, cancellationToken);
         return true;
     }
@@ -201,10 +208,10 @@ public sealed class FirebaseUserStore : IUserStore
     public async Task<ShoppingList> AddShoppingListAsync(string userId, ShoppingList list, CancellationToken cancellationToken)
     {
         EnsureConfigured();
-        var response = await _httpClient.PostAsJsonAsync(
-            BuildPath($"users/{userId}/shoppingLists.json"),
-            list,
-            JsonOptions,
+        var response = await SendAsync(
+            HttpMethod.Post,
+            $"users/{userId}/shoppingLists.json",
+            JsonContent.Create(list, options: JsonOptions),
             cancellationToken);
         var body = await ReadBodyAsync(response, cancellationToken);
         var created = JsonSerializer.Deserialize<FirebaseNameResponse>(body, JsonOptions);
@@ -241,7 +248,11 @@ public sealed class FirebaseUserStore : IUserStore
         }
 
         EnsureConfigured();
-        var response = await _httpClient.DeleteAsync(BuildPath($"users/{userId}/shoppingLists/{listId}.json"), cancellationToken);
+        var response = await SendAsync(
+            HttpMethod.Delete,
+            $"users/{userId}/shoppingLists/{listId}.json",
+            null,
+            cancellationToken);
         await ReadBodyAsync(response, cancellationToken);
         return true;
     }
@@ -249,7 +260,7 @@ public sealed class FirebaseUserStore : IUserStore
     private async Task<T?> GetJsonAsync<T>(string path, CancellationToken cancellationToken)
     {
         EnsureConfigured();
-        var response = await _httpClient.GetAsync(BuildPath(path), cancellationToken);
+        var response = await SendAsync(HttpMethod.Get, path, null, cancellationToken);
         var body = await ReadBodyAsync(response, cancellationToken);
         if (string.IsNullOrWhiteSpace(body) || body.Trim() == "null")
         {
@@ -262,7 +273,11 @@ public sealed class FirebaseUserStore : IUserStore
     private async Task PutJsonAsync<T>(string path, T payload, CancellationToken cancellationToken)
     {
         EnsureConfigured();
-        var response = await _httpClient.PutAsJsonAsync(BuildPath(path), payload, JsonOptions, cancellationToken);
+        var response = await SendAsync(
+            HttpMethod.Put,
+            path,
+            JsonContent.Create(payload, options: JsonOptions),
+            cancellationToken);
         await ReadBodyAsync(response, cancellationToken);
     }
 
@@ -295,6 +310,22 @@ public sealed class FirebaseUserStore : IUserStore
         }
 
         return body;
+    }
+
+    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content, CancellationToken cancellationToken)
+    {
+        EnsureConfigured();
+
+        var accessToken = await _databaseTokens.GetAccessTokenAsync(cancellationToken);
+
+        using var request = new HttpRequestMessage(method, path)
+        {
+            Content = content
+        };
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        return await _httpClient.SendAsync(request, cancellationToken);
     }
 
     private sealed class FirebaseNameResponse
