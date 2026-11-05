@@ -78,6 +78,8 @@ Pantry rows, settings, shopping lists, and profiles are read and written in **Fi
 
 The upload keystore and `android/keystore.properties` stay on the machine that signs the build. They are gitignored. To sign again, create `android/keystore.properties` with `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`, then run `./gradlew assembleRelease` inside `android/`. Release signing follows the Play app-signing guide (Google Play, 2026).
 
+The marker's evidence for publication readiness is this signed APK together with the promotional screenshots. A paid Play Console account is not part of the submitted evidence.
+
 ## DevOps
 
 GitHub Actions builds the API and runs xUnit on every push ([.github/workflows/api-ci.yml](.github/workflows/api-ci.yml)). The Android workflow runs unit tests and assembles a debug APK ([.github/workflows/android-ci.yml](.github/workflows/android-ci.yml)). The Android tests cover recipe matching and the offline outbox rules, so CI does not need a phone or Firebase secrets.
@@ -103,7 +105,7 @@ The Part 2 routes (SSO, settings, pantry, recipes, match, shopping lists, substi
 ```
 api/Pantry.Api/             Custom REST API
 api/Pantry.Api.Tests/       xUnit tests
-android/app/src/main/       Kotlin client
+android/app/src/main/       Kotlin client (the module Android Studio opens)
 firebase/storage.rules      Storage rules for scan blobs
 docs/play-store/            Listing copy and store icon
 docs/AI_USAGE.md            How generative AI was used
@@ -119,7 +121,7 @@ Secrets (`Firebase:BaseUrl`, `Firebase:ServiceAccountJson`, `LogMeal:ApiToken`, 
 | Member | Contribution |
 | --- | --- |
 | **Sihle Nathi Simelane** (`Sihl3s`) | Part 2 API and Android shell, and for this POE: biometric unlock, Room offline sync, Firebase Storage blobs, English / isiZulu / Afrikaans resources, FCM client and HTTP v1 send path, release signing, this report |
-| **Blessing Makhukhula** (`blessing-unlimited`) | Shopping lists, substitutions, LogMeal, Google Sign-In configuration. Push-notification hosting credentials can extend the FCM sender already in the API |
+| **Blessing Makhukhula** (`blessing-unlimited`) | Shopping lists, substitutions, LogMeal, Google Sign-In configuration, and authenticated Firebase Realtime Database access for the hosted API |
 | **Regopotsoe Lesedi Khutoane** (`ST10443296`) | Cook mode, onboarding, profile XP, badges, and streak |
 | **Nomathamsanqa Tame** (`NomathamsanqaTame`) | Dockerfile, Render hosting, Swagger, Part 2 videos, and the final physical-device video |
 
@@ -171,4 +173,3 @@ OWASP (2023) *OWASP API Security Top 10 – 2023*. Available at: https://owasp.o
 
 TheMealDB (2026) *API documentation*. Available at: https://www.themealdb.com/api.php (Accessed: 4 November 2026).
 
-Test workflow

@@ -13,17 +13,25 @@ if (googleServicesFile.exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+fun configFile(name: String): File {
+    val atGradleRoot = rootProject.file(name)
+    if (atGradleRoot.exists()) return atGradleRoot
+    val besideAndroidProject = file("../$name")
+    if (besideAndroidProject.exists()) return besideAndroidProject
+    return atGradleRoot
+}
+
 val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
+    val file = configFile("local.properties")
     if (file.exists()) {
         load(FileInputStream(file))
     }
 }
 
+val keystorePropertiesFile = configFile("keystore.properties")
 val keystoreProperties = Properties().apply {
-    val file = rootProject.file("keystore.properties")
-    if (file.exists()) {
-        load(FileInputStream(file))
+    if (keystorePropertiesFile.exists()) {
+        load(FileInputStream(keystorePropertiesFile))
     }
 }
 
@@ -51,7 +59,7 @@ android {
     signingConfigs {
         create("release") {
             if (keystoreProperties.isNotEmpty()) {
-                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storeFile = keystorePropertiesFile.parentFile.resolve(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")

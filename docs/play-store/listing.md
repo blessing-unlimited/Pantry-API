@@ -33,3 +33,8 @@ The app requests internet, network state, camera (optional), biometric unlock, a
 ## Release binary
 
 The signed production APK is [../../releases/pantry-1.0.0-release.apk](../../releases/pantry-1.0.0-release.apk). It is signed with the upload key described in the README and targets Android 15 (`targetSdk` 35) with a minimum of Android 8 (`minSdk` 26).
+
+## What to submit
+
+Publication readiness is shown by the signed APK above and by promotional screenshots of the app. A paid Google Play Console registration is not part of this assignment. Screenshots of the Console flow can stop on the screen that asks for the registration fee.
+

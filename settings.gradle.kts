@@ -18,4 +18,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Pantry"
+// The finished client lives in android/app. Opening this repository builds that module.
 include(":app")
+project(":app").projectDir = file("android/app")
