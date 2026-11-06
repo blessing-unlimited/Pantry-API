@@ -39,7 +39,7 @@ flowchart LR
 | --- | --- |
 | Part 2 mobile application demonstration | https://youtu.be/74z5YRa-JMU |
 | Part 2 API, Swagger and code walkthrough | https://youtu.be/XWsTvCrPVqk |
-| Final POE on a physical phone | Replace this cell with the unlisted YouTube URL after the voice-over recording. |
+| Final POE on a physical phone | https://youtu.be/bx06B6E3WtE |
 
 The final video must show Google sign-in together with biometric unlock, a settings change, a live call to this API, an offline pantry or shopping action that syncs after reconnect, and the same change in Firebase and the API. It also has to walk through the features defined in Part 1.
 
